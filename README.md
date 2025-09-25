@@ -1,6 +1,8 @@
 # QmkLayoutWidget
 Qmk layout visualiser frontend part
 
+Details in this reddit post https://www.reddit.com/r/ErgoMechKeyboards/comments/1nofeb6/current_layer_tray_indicator_for_qmkvial_keyboards/
+
 ## MacOSX
 
 ### Development
