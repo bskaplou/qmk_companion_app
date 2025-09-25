@@ -210,23 +210,18 @@ def wait_for_candidates():
 
 def fill_app(app, config):
     devices = wait_for_candidates()
-    if len(devices) == 0:
-        log.error("no devices found")
-        app.title == not_found
-    else:
-        while True:
-            active_device_index = 0
-            build_menu(app.menu, devices, active_device_index)
-            print(app.menu)
-            monitor_device_layers(
-                devices[active_device_index], app, config["layers_symbols"]
-            )
-            log.error(
-                "device %s seems to be disconnected I will try to reinit a bit later...",
-                devices[active_device_index]["path"],
-            )
-            app.title = loading
-            devices = wait_for_candidates()
+    while True:
+        active_device_index = 0
+        build_menu(app.menu, devices, active_device_index)
+        monitor_device_layers(
+            devices[active_device_index], app, config["layers_symbols"]
+        )
+        log.error(
+            "device %s seems to be disconnected I will try to reinit a bit later...",
+            devices[active_device_index]["path"],
+        )
+        app.title = loading
+        devices = wait_for_candidates()
 
 
 APPLICATION_NAME = "QmkLayoutWidget"
@@ -242,7 +237,7 @@ def init_config(app):
     file_path = None
 
     try:
-        with app.open(CONFIG_FILE, "r") as f:
+        with app.open(CONFIG_FILE, "rb") as f:
             return json.loads(f.read())
     except FileNotFoundError as e:
         log.info(
@@ -259,7 +254,9 @@ def init_config(app):
                 json.dumps(
                     {
                         "layers_symbols": DEFAULT_LAYERS_SYMBOLS,
-                    }
+                    },
+                    indent=4,
+                    ensure_ascii=False,
                 )
             )
 
