@@ -63,7 +63,7 @@ def hid_open(product_id, vendor_id, path):
 
 def hid_close(device):
     if device is not None:
-        log.info("closing device device %s", path["path"])
+        log.info("closing device device %s", device)
         device.close()
 
 
@@ -139,13 +139,6 @@ def enable_reporting_and_get_current_layer(device):
             response[0],
         )
         return response[0]
-
-
-def run_layer_report_loop(device, callback):
-    goon = True
-    while goon:
-        response = recv(device)
-        goon = callback(response)
 
 
 def build_menu(menu, devices, active_device_index):

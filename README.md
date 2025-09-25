@@ -13,6 +13,12 @@ Install dependencies
 pip install -r requirements.txt
 ```
 
+Check is keyboard supports protocol
+
+```
+python ProtocolTester.py
+```
+
 Run
 
 ```
