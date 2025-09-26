@@ -4,7 +4,7 @@
 #include QMK_KEYBOARD_H
 #include "raw_hid.h"
 
-#define HID_MESSAGE_LENGHT  32
+#define HID_MESSAGE_LENGTH  32
 #define HID_MESSAGE_ERROR   0xFF
 
 // via uses commands 0x01-0x13
@@ -22,19 +22,39 @@ enum hid_layers_command_id {
 // by default layers are not reported on change, can be altered with id_set_report_change subcommand
 uint8_t hid_layers_report                   = 0;
 
-layer_state_t layer_state_set_user(layer_state_t state) {
-    uint8_t length = 32;
+void hid_layers_fill_state(uint8_t *data, layer_state_t state) {
+    data[1] = get_highest_layer(state);
 
+#ifdef CAPS_WORD_ENABLE
+    data[2] = is_caps_word_on() ? 1 : 0;
+#else
+    data[2] = 0;
+#endif
+
+    data[3] = hid_layers_report;
+}
+
+void hid_layers_report_state(layer_state_t state) {
     if(hid_layers_report) {
-        uint8_t response[length];
-        memset(response, 0, length);
+        uint8_t response[HID_MESSAGE_LENGTH];
+        memset(response, 0, HID_MESSAGE_LENGTH);
         response[0] = id_hid_layers_out;
-        response[1] = get_highest_layer(state);
-        raw_hid_send(response, length);
+        hid_layers_fill_state(response, state);
+        raw_hid_send(response, HID_MESSAGE_LENGTH);
     }
+}
 
+layer_state_t layer_state_set_user(layer_state_t state) {
+    hid_layers_report_state(state);
     return state;
 }
+
+#ifdef CAPS_WORD_ENABLE
+void caps_word_set_user(bool active) {
+    // NB layer_state is globally defined in upper code
+    hid_layers_report_state(layer_state);
+}
+#endif
 
 void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     // hid messages are 32 bytes long so it's always safe to read first/second/third bytes
@@ -49,22 +69,21 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
         data[0] = id_hid_layers_out;
         // error will be returned in case of no subcommand match and success
         data[1] = HID_MESSAGE_ERROR;
-        // third byte is always layers report flag because 32 bytes are enough to always send it back
-        data[2] = hid_layers_report;
 
         switch(subcommand) {
             case id_set_report_change:
                 hid_layers_report = argument;
-                data[2] = hid_layers_report;
             // active layer returned for set_report_change to avoid additional commands from consumer
             case id_get_layer_state:
-                // NB layer_state is globally defined in upper code
-                data[1] = get_highest_layer(layer_state);
+                hid_layers_fill_state(data, layer_state);
                 break;
             case id_invert_layer:
                 if(layer_state < DYNAMIC_KEYMAP_LAYER_COUNT) {
+                    uint8_t save_report_state = hid_layers_report;
+                    hid_layers_report = 0;
                     layer_invert(argument);
-                    data[1] = argument;
+                    hid_layers_report = save_report_state;
+                    hid_layers_fill_state(data, layer_state);
                 }
                 break;
         }

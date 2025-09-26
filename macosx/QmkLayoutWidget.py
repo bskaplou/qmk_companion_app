@@ -30,6 +30,7 @@ alpha = "Æ"
 numpad = "¾"
 pointer = "🐁"
 navigation = "⇆"
+caps_word = "🆎"
 
 unknown = "❓"
 device_not_found = "❌"
@@ -40,11 +41,12 @@ DEFAULT_LAYERS_SYMBOLS = {
     "1": navigation,
     "2": pointer,
     "3": numpad,
+    "caps_word": caps_word,
 }
 
 
-def get_symbol(layer, syms):
-    layer = str(layer)
+def get_symbol(layer, caps_word, syms):
+    layer = str(layer) if caps_word == 0 else "caps_word"
     if layer in syms:
         return syms[layer]
 
@@ -120,25 +122,29 @@ def enable_reporting_and_get_current_layer(device):
     if response is None:
         return None
 
-    if response[1] != 0:
+    if response[2] != 0:
         log.info(
-            "layer reporting is enabled %s, current layer %s", response[1], response[0]
+            "layer reporting is enabled %s, current layer %s, caps word %s",
+            response[2],
+            response[0],
+            response[1],
         )
-        return response[0]  # layer num
+        return response[0], response[1]  # layer num
     else:
-        log.info("layer reporting is not enabled %s, will enable it now", response[1])
+        log.info("layer reporting is not enabled %s, will enable it now", response[2])
         send(device, [SET_REPORT_CHANGE, 1])
         response = recv(device, 500)
-        if response[1] != 1:
+        if response[2] != 1:
             log.error("failed to enable reporting, dig deeper!")
             return None
 
         log.info(
-            "layer reporting successfully enabled %s, current layer %s",
-            response[1],
+            "layer reporting successfully enabled %s, current layer %s, caps word %s",
+            response[2],
             response[0],
+            response[1],
         )
-        return response[0]
+        return response[0], response[1]
 
 
 def build_menu(menu, devices, active_device_index):
@@ -148,19 +154,11 @@ def build_menu(menu, devices, active_device_index):
             del menu[name]
 
     for idx, device in enumerate(devices):
+        item = f"{'✔️' if idx == active_device_index else ' '} {device['product_string']} {device['path'].decode('utf-8')}"
         if "Quit" in menu:
-            menu.insert_before(
-                "Quit",
-                rumps.MenuItem(
-                    f"{'✔️' if idx == active_device_index else ' '} {device['product_string']} {device['path'].decode('utf-8')}"
-                ),
-            )
+            menu.insert_before("Quit", rumps.MenuItem(item))
         else:
-            menu.add(
-                rumps.MenuItem(
-                    f"{'✔️' if idx == active_device_index else ' '} {device['product_string']} {device['path'].decode('utf-8')}"
-                )
-            )
+            menu.add(rumps.MenuItem(item))
 
     return menu
 
@@ -173,18 +171,19 @@ def monitor_device_layers(device_info, app, layers_symbols):
         # TODO implement search loop
         exit(1)
 
-    current_layer = enable_reporting_and_get_current_layer(device)
-    if current_layer is None:
+    message = enable_reporting_and_get_current_layer(device)
+    if message is None:
         # TODO implement search loop
         exit(1)
 
-    app.title = get_symbol(current_layer, layers_symbols)
+    current_layer, caps_word = message
+    app.title = get_symbol(current_layer, caps_word, layers_symbols)
 
     while True:
         try:
             message = recv(device)
-            current_layer = message[0]
-            app.title = get_symbol(current_layer, layers_symbols)
+            current_layer, caps_word = message[0], message[1]
+            app.title = get_symbol(current_layer, caps_word, layers_symbols)
         except hid.HIDException as e:
             log.error("hid receive error %s", device_info["path"])
             return

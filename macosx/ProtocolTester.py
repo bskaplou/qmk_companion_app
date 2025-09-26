@@ -96,23 +96,27 @@ def enable_reporting_and_get_current_layer(device):
     if response is None:
         return None
 
-    if response[1] != 0:
+    if response[2] != 0:
         log.info(
-            "layer reporting is enabled %s, current layer %s", response[1], response[0]
+            "layer reporting is enabled %s, current layer %s, caps word %s",
+            response[2],
+            response[0],
+            response[1],
         )
         return response[0]  # layer num
     else:
-        log.info("layer reporting is not enabled %s, will enable it now", response[1])
+        log.info("layer reporting is not enabled %s, will enable it now", response[2])
         send(device, [SET_REPORT_CHANGE, 1])
         response = recv(device, 500)
-        if response[1] != 1:
+        if response[2] != 1:
             log.error("failed to enable reporting, dig deeper!")
             return None
 
         log.info(
-            "layer reporting successfully enabled %s, current layer %s",
-            response[1],
+            "layer reporting successfully enabled %s, current layer %s, caps word %s",
+            response[2],
             response[0],
+            response[1],
         )
         return response[0]
 
