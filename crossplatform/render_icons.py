@@ -15,7 +15,7 @@ icons = {
 }
 
 canvas = Canvas().font_family("UbuntuMonoNerdFontMono-Regular.ttf")
-size = 128 
+size = 44
 
 for name, code in icons.items():
     box = Row(Text(code)

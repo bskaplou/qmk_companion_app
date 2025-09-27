@@ -21,6 +21,12 @@ Check if keyboard supports protocol
 python ProtocolTester.py
 ```
 
+Build MacOSX app
+
+```
+python setup.py py2app
+```
+
 Run
 
 ```
@@ -45,6 +51,13 @@ Install dependencies
 ```
 pip install -r requirements.txt
 ```
+
+Build MacOSX app
+
+```
+python -m nuitka --macos-create-app-bundle --static-libpython=no --macos-app-icon=icon.png --macos-app-mode=background --include-raw-dir=icons=icons --enable-plugin=pyside6 --macos-app-name=QmkLayoutWidget QmkLayoutWidget.py
+```
+
 
 Run
 
