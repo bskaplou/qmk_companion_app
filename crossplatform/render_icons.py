@@ -13,7 +13,7 @@ icons = {
     "gaming": "\U000f0eb5",
     # 'caps_word': '\U000F030E',
     "caps_word": "\U000f0a9b",
-    "gaming": "\U00002248",
+    "symbols": "\U00002248",
     "wait0": "\U0000f251",
     "wait1": "\U0000f252",
     "wait2": "\U0000f253",
