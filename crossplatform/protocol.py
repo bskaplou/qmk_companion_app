@@ -83,6 +83,7 @@ def recv(device, timeout=None):
 
     return None
 
+
 def enable_reporting_and_get_state(device):
     log.info("sending GET_LAYERS_STATE")
     send(device, [GET_LAYERS_STATE])

@@ -43,36 +43,37 @@ def process_loop(callback):
                     callback(current_layer, caps_word)
                 except hid.HIDException as e:
                     log.error("hid receive error %s", device_info["path"])
-                    break 
+                    break
         else:
             log.error("No candidate devices found. I'll wait and try later.")
             time.sleep(1)
 
 
-#process_loop(lambda l, c: log.info(f"layer: {l}, caps_word: {c}"))
+# process_loop(lambda l, c: log.info(f"layer: {l}, caps_word: {c}"))
+
 
 def icon_updater(icon, iconset):
     def update(layer, caps_word):
         layer = str(layer)
         if caps_word != 0:
-            icon.icon = iconset['caps_word']
+            icon.icon = iconset["caps_word"]
         elif layer in iconset:
             icon.icon = iconset[layer]
         else:
-            icon.icon = iconset['not_found']
-
+            icon.icon = iconset["not_found"]
 
     process_loop(update)
 
+
 icons_names = [
-    'default',
-    'navigation',
-    'pointer',
-    'numpad',
-    'gaming',
-    'caps_word',
-    'wait',
-    'not_found',
+    "default",
+    "navigation",
+    "pointer",
+    "numpad",
+    "gaming",
+    "caps_word",
+    "wait",
+    "not_found",
 ]
 
 icons = {}
@@ -80,12 +81,9 @@ for idx, icon in enumerate(icons_names):
     icons[icon] = Image.open(f"icons/{icon}.png")
     icons[str(idx)] = icons[icon]
 
-icon = pystray.Icon(
-   'AE',
-   icon=icons['wait']
-)
+icon = pystray.Icon("AE", icon=icons["wait"])
 
-threading.Thread(target=icon_updater,args=(icon, icons)).start()
+threading.Thread(target=icon_updater, args=(icon, icons)).start()
 
 
 icon.run()
