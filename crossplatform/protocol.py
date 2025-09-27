@@ -25,16 +25,22 @@ MESSAGE_LENGTH = 32
 def open(product_id, vendor_id, path):
     try:
         device = hid.Device(vid=vendor_id, pid=product_id, path=path)
-        log.info("successfully opened device %s", path)
+        log.info("successfully opened device %s, %s, %s", product_id, vendor_id, path)
         return device
     except hid.HIDException as e:
-        log.error("failed to open device %s %s", path, e)
+        log.error(
+            "failed to open device %s, %s, %s exception: %s",
+            product_id,
+            vendor_id,
+            path,
+            e,
+        )
         return None
 
 
 def close(device):
     if device is not None:
-        log.info("closing device device %s", device)
+        log.info("closing device %s", device)
         device.close()
 
 

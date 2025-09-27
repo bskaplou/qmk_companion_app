@@ -4,8 +4,10 @@
 from pictex import *
 
 icons = {
-    # 'default': '\U000F030C',
-    "default": "\U000004d4",
+    #'default': '\U000F030C',
+    #'default': '\U000F09FA',
+    "default": "\U000f132e",
+    # "default": "\U000004d4",
     "navigation": "\U0000f0ec",
     "pointer": "\U000f037d",
     "numpad": "\U0000215b",
@@ -20,16 +22,18 @@ icons = {
     "not_found": "\U0000eef9",
 }
 
-canvas = Canvas().font_family("UbuntuMonoNerdFontMono-Bold.ttf")
+canvas = Canvas().font_family("UbuntuMonoNerdFontMono-Regular.ttf")
 size = 44
 
 for name, code in icons.items():
     box = (
-        Row(Text(code).font_size(size).color("white"))
-        .size(width=size, height=size)
-        .horizontal_distribution("center")
+        Row(
+            Text(code).font_size(size * 1.4).color("white").position("center", "center")
+        )
+        # .background_color("red")
+        .size(width=size, height=size).horizontal_distribution("center")
     )
 
-    image = canvas.render(box)
+    image = canvas.render(box, crop_mode=CropMode.CONTENT_BOX)
 
     image.save(f"icons/{name}.png")
