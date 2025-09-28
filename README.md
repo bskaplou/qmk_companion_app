@@ -62,12 +62,12 @@ python -m nuitka --macos-create-app-bundle --static-libpython=no --macos-app-ico
 Run
 
 ```
-python widget_pystray.py
+python QmkLayoutWidget.py
 ```
 
 ## Linux
 
-Crosscompiled version works with Linux well at least on my Raspberri Py for now.
+Crossplatform version works with Linux well at least on my Raspberry Pi for now (I have no other linux desktops around sorry :( ).
 
 Linux guys are pretty tech-savy usually so prebuilt package is not necessary here.
 
