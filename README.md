@@ -55,7 +55,7 @@ pip install -r requirements.txt
 Build MacOSX app
 
 ```
-python -m nuitka --macos-create-app-bundle --static-libpython=no --macos-app-icon=icon.png --macos-app-mode=background --include-raw-dir=icons=icons --enable-plugin=pyside6 --macos-app-name=QmkLayoutWidget QmkLayoutWidget.py
+python -m nuitka --macos-create-app-bundle --static-libpython=no --macos-app-icon=icons/app_icon.png --macos-app-mode=background --include-raw-dir=icons=icons --enable-plugin=pyside6 --macos-app-name=QmkLayoutWidget QmkLayoutWidget.py
 ```
 
 

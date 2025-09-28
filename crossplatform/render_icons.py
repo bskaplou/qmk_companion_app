@@ -40,3 +40,19 @@ for name, code in icons.items():
         image = canvas.render(box, crop_mode=CropMode.CONTENT_BOX)
 
         image.save(f"icons/{name}_{bc}.png")
+
+
+size = 1024
+app_icon_code = "\U000000c6"
+box = (
+    Row(
+        Text(app_icon_code).font_size(size * 1.4).color(bc).position("center", "center")
+    )
+    .background_color("white")
+    .size(width=size, height=size)
+    .horizontal_distribution("center")
+)
+
+image = canvas.render(box, crop_mode=CropMode.CONTENT_BOX)
+
+image.save(f"icons/app_icon.png")
