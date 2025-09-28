@@ -63,17 +63,19 @@ CONFIG_FILE = "configuration.json"
 
 DEFAULT_CONFIG = {
     "icons": {
-        "0": "default.png",
-        "1": "navigation.png",
-        "2": "pointer.png",
-        "3": "numpad.png",
-        "4": "gaming.png",
-        "5": "symbols.png",
-        "caps_word": "caps_word.png",
-        "wait0": "wait0.png",
-        "wait1": "wait1.png",
-        "wait2": "wait2.png",
-        "not_found": "not_found.png",
+        "0": "default",
+        "1": "navigation",
+        "2": "pointer",
+        "3": "numpad",
+        "4": "gaming",
+        "5": "symbols",
+        "6": "shortcuts",
+        "7": "media",
+        "caps_word": "caps_word",
+        "wait0": "wait0",
+        "wait1": "wait1",
+        "wait2": "wait2",
+        "not_found": "not_found",
     }
 }
 
@@ -125,8 +127,6 @@ wait_pos = 0
 
 
 def setup_application(config):
-    devices_signal = DevicesSignal()
-
     def shutdown():
         global stop
         log.info("shutting down app")
@@ -139,10 +139,6 @@ def setup_application(config):
     def select_device(candidates):
         devices_signal.it.emit(candidates)
         return 0
-
-    wait_icon_names = list(
-        filter(lambda i: i.startswith("wait"), config["icons"].keys())
-    )
 
     def wait_for_device():
         global wait_pos
@@ -158,24 +154,29 @@ def setup_application(config):
         else:
             tray.setIcon(icons["not_found"])
 
+    wait_icon_names = list(
+        filter(lambda i: i.startswith("wait"), config["icons"].keys())
+    )
+
+    devices_signal = DevicesSignal()
+
     app = QApplication([])
 
     current_dir = Path(__file__).parent
     icons = {}
     for name, icon in config["icons"].items():
-        icons[name] = QIcon(os.path.join(current_dir, "icons", icon))
+        icons[name] = QIcon(os.path.join(current_dir, "icons", f"{icon}.png"))
 
     app.setQuitOnLastWindowClosed(False)
 
-    @Slot()
-    def draw_devices_menu(devices):
-        # pp(devices)
-        pass
-
     menu = QMenu()
 
-    menu.addSection("Devices")
-    menu.addSeparator()
+    # I don't expect > 5 keyboards to be connected at once
+    device_actions = []
+    for da in range(5):
+        a = QAction(str(da))
+        device_actions.append(a)
+
     quit = QAction("Quit")
     quit.triggered.connect(shutdown)
     menu.addAction(quit)
@@ -185,11 +186,28 @@ def setup_application(config):
     tray.setContextMenu(menu)
     tray.setVisible(True)
 
-    def worker():
-        process_loop(update_state_icon, wait_for_device, select_device)
+    pool = QThreadPool()
+    pool.start(lambda: process_loop(update_state_icon, wait_for_device, select_device))
 
-    threadpool = QThreadPool()
-    threadpool.start(worker)
+    @Slot()
+    def draw_devices_menu(devices):
+        menu.clear()
+
+        for idx, dev in enumerate(devices):
+            da = device_actions[idx]
+
+            label = f"{dev['product_string']} - {dev['path'].decode('utf8')}"
+            if idx == 0:
+                da.setText(f"✓ {label}")
+            else:
+                da.setText(f"  {label}")
+                da.triggered.connect(shutdown)
+
+            menu.addAction(da)
+
+        menu.addSeparator()
+        menu.addAction(quit)
+        # pp(devices)
 
     devices_signal.it.connect(draw_devices_menu)
 

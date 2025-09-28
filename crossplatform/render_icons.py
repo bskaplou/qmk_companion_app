@@ -13,6 +13,8 @@ icons = {
     "numpad": "\U0000215b",
     # 'gaming': '\U000F0297',
     "gaming": "\U000f0eb5",
+    "shortcuts": "\U000f1935",
+    "media": "\U000f127a",
     # 'caps_word': '\U000F030E',
     "caps_word": "\U000f0a9b",
     "symbols": "\U00002248",
