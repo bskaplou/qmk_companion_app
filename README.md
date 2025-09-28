@@ -65,4 +65,26 @@ Run
 python widget_pystray.py
 ```
 
+## Linux
 
+Crosscompiled version works with Linux well at least on my Raspberri Py for now.
+
+Linux guys are pretty tech-savy usually so prebuilt package is not necessary here.
+
+Python 3.11.9 is required because PySide6 is not ready for 3.12 at the moment :( It might by installed with pyenv for example.
+
+Install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+It's necessary to set suitable permissions on /dev/hidraw? device possibly with udev as described here https://get.vial.today/manual/linux-udev.html
+
+Run
+
+```
+python QmkLayoutWidget.py
+```
+
+Logs are pretty detailed so if something works wrong please open the issue with description and logs attached.

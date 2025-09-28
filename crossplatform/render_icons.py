@@ -27,15 +27,16 @@ icons = {
 canvas = Canvas().font_family("UbuntuMonoNerdFontMono-Regular.ttf")
 size = 44
 
+back_colors = ["white", "black"]
+
 for name, code in icons.items():
-    box = (
-        Row(
-            Text(code).font_size(size * 1.4).color("white").position("center", "center")
+    for bc in back_colors:
+        box = (
+            Row(Text(code).font_size(size * 1.4).color(bc).position("center", "center"))
+            # .background_color("red")
+            .size(width=size, height=size).horizontal_distribution("center")
         )
-        # .background_color("red")
-        .size(width=size, height=size).horizontal_distribution("center")
-    )
 
-    image = canvas.render(box, crop_mode=CropMode.CONTENT_BOX)
+        image = canvas.render(box, crop_mode=CropMode.CONTENT_BOX)
 
-    image.save(f"icons/{name}.png")
+        image.save(f"icons/{name}_{bc}.png")

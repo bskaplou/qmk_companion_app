@@ -12,7 +12,15 @@ import os.path
 import random
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
-from PySide6.QtCore import Signal, QRunnable, QThreadPool, Slot, QObject, QStandardPaths
+from PySide6.QtCore import (
+    Signal,
+    QRunnable,
+    QThreadPool,
+    Slot,
+    QObject,
+    QStandardPaths,
+    QSysInfo,
+)
 
 from pprint import pp
 
@@ -162,10 +170,13 @@ def setup_application(config):
 
     app = QApplication([])
 
+    icon_tail = "white" if QSysInfo.kernelType() == "darwin" else "black"
     current_dir = Path(__file__).parent
     icons = {}
     for name, icon in config["icons"].items():
-        icons[name] = QIcon(os.path.join(current_dir, "icons", f"{icon}.png"))
+        icons[name] = QIcon(
+            os.path.join(current_dir, "icons", f"{icon}_{icon_tail}.png")
+        )
 
     app.setQuitOnLastWindowClosed(False)
 
