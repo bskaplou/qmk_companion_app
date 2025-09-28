@@ -88,3 +88,5 @@ python QmkLayoutWidget.py
 ```
 
 Logs are pretty detailed so if something works wrong please open the issue with description and logs attached.
+
+Layers configuration might be updated in file $HOME/.config/QmkLayoutWidget/configuration.json which is created on first launch.
