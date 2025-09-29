@@ -1,56 +1,29 @@
 # QmkLayoutWidget
-Qmk layout visualiser frontend part
+Qmk layout indicator frontend part
 
 Details in this reddit post https://www.reddit.com/r/ErgoMechKeyboards/comments/1nofeb6/current_layer_tray_indicator_for_qmkvial_keyboards/
 
-## MacOSX
+## Firmware dependency
 
-MacOSX version lives in macosx directory.
-
-### Development
-
-Install dependencies
-
-```
-pip install -r requirements.txt
-```
-
-Check if keyboard supports protocol
-
-```
-python ProtocolTester.py
-```
-
-Build MacOSX app
-
-```
-python setup.py py2app
-```
-
-Run
-
-```
-python QmkLayoutWidget.py
-```
-
-### Build
-```
-python setup.py py2app
-```
-
-Also necessary to follow this advice to make it work https://github.com/ronaldoussoren/py2app/issues/533
+Companion applicaton should work only with keyboards with firmware including module this https://github.com/bskaplou/companion_hid
 
 ## Crossplatform version
 
-Crossplatform version lives in crossplatform directory
+Crossplatform version lives in directory 'crossplatform'
 
 ### Development
 
 Install dependencies
 
+NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems
+
+Python 3.10 or newer is required.
+
 ```
 pip install -r requirements.txt
 ```
+
+Keyboard might be ckecked for compatibility with protocol_tester.py
 
 Build MacOSX app
 
@@ -58,20 +31,22 @@ Build MacOSX app
 python -m nuitka --macos-create-app-bundle --static-libpython=no --macos-app-icon=icons/app_icon.png --macos-app-mode=background --include-raw-dir=icons=icons --enable-plugin=pyside6 --macos-app-name=QmkLayoutWidget QmkLayoutWidget.py
 ```
 
-
 Run
 
 ```
 python QmkLayoutWidget.py
 ```
 
-## Linux
+
+### Linux
 
 Crossplatform version works with Linux well at least on my Raspberry Pi for now (I have no other linux desktops around sorry :( ).
 
 Linux guys are pretty tech-savy usually so prebuilt package is not necessary here.
 
 Python 3.11.9 is required because PySide6 is not ready for 3.12 at the moment :( It might by installed with pyenv for example.
+
+NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems
 
 Install dependencies
 
