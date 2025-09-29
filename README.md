@@ -37,6 +37,16 @@ Run
 python QmkLayoutWidget.py
 ```
 
+### App and layer icons
+
+Icons are renred from fonts because I'm not a designer. Icons can be created with any tool and should be put into icons directore to be used.
+To add new icons with ttf font It's necessary to edit render_icons.py script.
+
+Recreate existing icons
+
+```
+python render_icons.py
+```
 
 ### Linux
 

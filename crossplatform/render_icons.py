@@ -55,4 +55,4 @@ box = (
 
 image = canvas.render(box, crop_mode=CropMode.CONTENT_BOX)
 
-image.save(f"icons/app_icon.png")
+image.to_pillow().rotate(30).save(f"icons/app_icon.png")
