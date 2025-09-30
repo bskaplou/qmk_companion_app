@@ -17,5 +17,10 @@ for dev in devs:
     response = protocol.recv(dd)
     protocol.send(dd, [protocol.GET_LAYERS_STATE])
     response = protocol.recv(dd)
-    log.info("current layer: %s, caps_word: %s, report_enabled: %s", response[0], response[1], response[2])
+    log.info(
+        "current layer: %s, caps_word: %s, report_enabled: %s",
+        response[0],
+        response[1],
+        response[2],
+    )
     protocol.close(dd)

@@ -13,7 +13,10 @@ RAW_USAGE_ID = 0x61
 
 # protocol
 HID_LAYERS_IN = 0x88
-HID_LAYERS_OUT = 0x89
+HID_LAYERS_OUT_STATE = 0x89
+HID_LAYERS_OUT_PRESS = 0x90
+HID_LAYERS_OUT_VERSION = 0x91
+HID_LAYERS_OUT_ERROR = 0x92
 
 GET_VERSION = 0x00
 GET_LAYERS_STATE = 0x01
@@ -84,8 +87,10 @@ def recv(device, timeout=None):
         if len(response) == 0:
             log.info("read timeout")
             return None
-        elif response[0] == HID_LAYERS_OUT:
-            return response[1:]
+        elif (
+            response[0] >= HID_LAYERS_OUT_STATE and response[0] <= HID_LAYERS_OUT_ERROR
+        ):
+            return response
         else:
             log.error("non-protocol HID message received %s", response)
 
@@ -99,26 +104,26 @@ def enable_reporting_and_get_state(device):
     if response is None:
         return None
 
-    if response[2] != 0:
+    if response[3] != 0:
         log.info(
             "layer reporting is enabled %s, current layer %s, caps word %s",
-            response[2],
-            response[0],
+            response[3],
             response[1],
+            response[2],
         )
-        return response[0], response[1]  # layer num
+        return response[1], response[2]  # layer num
     else:
         log.info("layer reporting is not enabled %s, will enable it now", response[2])
         send(device, [SET_REPORT_CHANGE, 1])
         response = recv(device, 500)
-        if response[2] != 1:
+        if response[3] != 1:
             log.error("failed to enable reporting, dig deeper!")
             return None
 
         log.info(
             "layer reporting successfully enabled %s, current layer %s, caps word %s",
-            response[2],
-            response[0],
+            response[3],
             response[1],
+            response[2],
         )
-        return response[0], response[1]
+        return response[1], response[2]

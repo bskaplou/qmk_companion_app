@@ -45,7 +45,9 @@ def process_loop(callback_state, callback_wait, callback_select_device):
             )
             if device is not None:
                 state = protocol.enable_reporting_and_get_state(device)
-                if state is not None:
+                if state is None:
+                    protocol.close(device)
+                else:
                     current_layer, caps_word = state
                     callback_state(current_layer, caps_word)
 
@@ -55,8 +57,13 @@ def process_loop(callback_state, callback_wait, callback_select_device):
                             if message is None:
                                 protocol.close(device)
                                 break
-                            current_layer, caps_word = message[0], message[1]
-                            callback_state(current_layer, caps_word)
+                            if message[0] == protocol.HID_LAYERS_OUT_STATE:
+                                current_layer, caps_word = message[1], message[2]
+                                callback_state(current_layer, caps_word)
+                            elif message[0] == protocol.HID_LAYERS_OUT_PRESS:
+                                logger.info(
+                                    "press => %s received", message[1:5].decode("utf32")
+                                )
                         except hid.HIDException as e:
                             log.error("hid receive error %s", device_info["path"])
                             break
