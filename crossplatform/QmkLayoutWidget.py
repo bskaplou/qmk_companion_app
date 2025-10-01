@@ -176,13 +176,13 @@ def setup_application(config):
         original = copykitten.paste()
         copykitten.copy(symbol)
         # FIXME imperical value and potentially reduces typing speed
-        time.sleep(0.01)
+        time.sleep(0.02)
         keyboard.press(Key.cmd_l)
         keyboard.press("v")
         keyboard.release("v")
         keyboard.release(Key.cmd_l)
         # FIXME imperical value and potentially reduces typing speed
-        time.sleep(0.015)
+        time.sleep(0.02)
         copykitten.copy(original)
 
     wait_icon_names = list(

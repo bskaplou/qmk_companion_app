@@ -14,7 +14,8 @@ emojis = {}
 with open(emojilist_path, "r") as f:
     for line in f.readlines():
         sym, sc = line.split(" ")
-        emojis[sym] = sc[6:-8]
+        if sym not in emojis:
+            emojis[sym] = sc[6:-8]
 
 if len(sys.argv) == 1:
     print(json.dumps(emojis, indent=4, ensure_ascii=False))
@@ -46,8 +47,6 @@ else:
     # 	      }
     #    ],
     process_function = """
-#define SAFE_START QK_KB_0 
-
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   const char* fallback = unisymbols[keycode - SAFE_START][0];
   const uint32_t symbol = *((uint32_t*) unisymbols[keycode - SAFE_START][1]);
@@ -66,7 +65,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     unisymbols = "const char* unisymbols[][2] = {\n"
     vial_keycodes = '    "customKeycodes": [\n'
 
-    symbols = set(sys.argv[1:])
+    symbols = sorted(set(sys.argv[1:]))
     for idx, symbol in enumerate(symbols):
         symbol_bytes = list(reversed(bytes(symbol, "utf32")[4:]))
         symbol_hex = []
@@ -76,12 +75,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         symbol_char = "U" + "".join(symbol_hex)
 
         title = unicodedata.name(symbol).title()
-        constant = title.upper().replace(" ", "_")
+        constant = title.upper().replace(" ", "_").replace("-", "_")
 
         if symbol in emojis:
             fallback = emojis[symbol]
         else:
-            fallback = ":" + t.lower().replace(" ", "_") + ":"
+            fallback = ":" + t.lower().replace(" ", "_").replace("-", "_") + ":"
 
         short_name = "".join(symbol_hex).lstrip("0")
         name = "U+" + short_name
@@ -103,6 +102,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     vial_keycodes = vial_keycodes[0:-2] + "\n    ],"
 
     print("===============  put following code into keymap.c ===============")
+    print("#define SAFE_START QK_KB_0\n")
     print(unicode_keycodes)
     print(unisymbols)
     print(process_function)
