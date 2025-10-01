@@ -138,7 +138,7 @@ Vial will allow to assign unicode characters with "User" tab of tab "Keymap" aft
 
 If keyboard with firmware which includes these chages is connected to computer with companion app user will be able just to push buttons and get unicode characters like 😁 and 😂.
 
-If keyboard is connected to computer without companion app runing it will send fallback strings instead like \:grin\: and \:joy\: .
+If keyboard is connected to computer without companion app runing it will send fallback strings instead like : grin : and : joy : .
 
 NB Such complex way setup is POC. If feature will be interested to community it will be possible to move whole the setup into Vial.
 
