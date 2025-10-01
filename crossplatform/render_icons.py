@@ -18,6 +18,7 @@ icons = {
     # 'caps_word': '\U000F030E',
     "caps_word": "\U000f0a9b",
     "symbols": "\U00002248",
+    "emoji": "\U0000eb54",
     "wait0": "\U0000f251",
     "wait1": "\U0000f252",
     "wait2": "\U0000f253",

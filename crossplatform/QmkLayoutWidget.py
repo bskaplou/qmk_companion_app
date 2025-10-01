@@ -85,10 +85,11 @@ DEFAULT_CONFIG = {
         "1": "navigation",
         "2": "pointer",
         "3": "numpad",
-        "4": "gaming",
-        "5": "symbols",
-        "6": "shortcuts",
-        "7": "media",
+        "4": "emoji",
+        "5": "gaming",
+        "6": "symbols",
+        "7": "shortcuts",
+        "8": "media",
         "caps_word": "caps_word",
         "wait0": "wait0",
         "wait1": "wait1",
@@ -110,6 +111,7 @@ def init_config():
         return DEFAULT_CONFIG
 
     file_path = os.path.join(config_locations[0], APPLICATION_NAME, CONFIG_FILE)
+    log.info("loading configuration from file %s", file_path)
 
     try:
         with open(file_path, "rb") as f:
@@ -132,7 +134,7 @@ def init_config():
                 )
             )
 
-        log.info("default config written feel free to edit")
+        log.info("default config %s written feel free to edit", file_path)
 
         return init_config()
 

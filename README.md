@@ -97,3 +97,90 @@ python QmkLayoutWidget.py
 Logs are pretty detailed so if something works wrong please open the issue with description and logs attached.
 
 Layers configuration might be updated in file $HOME/.config/QmkLayoutWidget/configuration.json which is created on first launch.
+
+# Unicode characters with fallback and Vial support
+
+Desktop component allows a wide rande of new features and unicode character is just a simple example.
+
+Qmk already has unicode support which is pretty complex to setup and system dependent.
+https://docs.qmk.fm/features/unicode
+
+Qmk unicode support is even called a hach sometimes.
+https://getreuer.info/posts/keyboards/non-english/index.html#unicode-input
+
+Current implementation expected to be less hacky.
+
+## How it works and how to run it work
+
+Vial firmware compilation skill required to make it work.
+
+Unicode characters are embedded into firmware.
+They are embedded into two places:
+
+* keymap.c - to add characters and ralated processing
+* vial.json - to allow keymap configuration in vial
+
+Current repository contains python script which creates both parts for unicode characters of your selection.
+
+This script takes unicode characters as arguments and dumps code for both keymap.c and vial.json as a result.
+
+It's necessary to put related peaces of code into keymap.c after the last include and into vial.json after first '{'
+
+NB both companion_hid and qmk_companion_app required for full functionality.
+
+It's not necessary to update OS keyboard settings, not necessary to add special unicode layout.
+
+Vial will allow to assign unicode characters with "User" tab of tab "Keymap" after keyboard firmware update.
+
+If keyboard with firmware which includes these chages is connected to computer with companion app user will be able just to push buttons and get unicode characters like 😁 and 😂.
+
+If keyboard is connected to computer without companion app runing it will send fallback strings instead like :grin: and :joy: .
+
+NB Such complex way setup is POC. If feature will be interested to community it will be possible to move whole the setup into Vial.
+
+## Example
+
+```
+❯ python unicode_keymap/generator.py 😁 😂
+===============  put following code into keymap.c ===============
+#define SAFE_START QK_KB_0
+
+enum unicode_keycodes {
+    GRINNING_FACE_WITH_SMILING_EYES = SAFE_START,
+    FACE_WITH_TEARS_OF_JOY,
+};
+
+const char* unisymbols[][2] = {
+    {":grin:", (char*) U"\U0001F601"},
+    {":joy:", (char*) U"\U0001F602"},
+};
+
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  const char* fallback = unisymbols[keycode - SAFE_START][0];
+  const uint32_t symbol = *((uint32_t*) unisymbols[keycode - SAFE_START][1]);
+  if(keycode >= SAFE_START) {
+      if (record->event.pressed) {
+          companion_hid_report_press(symbol, fallback);
+      }
+      return false;
+  } else {
+      return true;
+  }
+}
+
+=============== put following code into vial.json ===============
+    "customKeycodes": [
+        {
+            "name": "U+1F601",
+            "title": "Grinning Face With Smiling Eyes",
+            "shortName": "1F601"
+        },
+        {
+            "name": "U+1F602",
+            "title": "Face With Tears Of Joy",
+            "shortName": "1F602"
+        }
+    ],
+=================================================================
+```
