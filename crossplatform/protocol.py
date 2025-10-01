@@ -22,6 +22,7 @@ GET_VERSION = 0x00
 GET_LAYERS_STATE = 0x01
 SET_REPORT_CHANGE = 0x02
 INVERT_LAYER = 0x03
+SET_REPORT_PRESS = 0x04
 
 # raw hid specific
 MESSAGE_LENGTH = 32
@@ -106,24 +107,40 @@ def enable_reporting_and_get_state(device):
 
     if response[3] != 0:
         log.info(
-            "layer reporting is enabled %s, current layer %s, caps word %s",
+            "layer reporting is enabled %s, presses are enabled %s, current layer %s, caps word %s",
             response[3],
+            response[4],
             response[1],
             response[2],
         )
-        return response[1], response[2]  # layer num
+        state = response[1], response[2]  # layer num, caps sword
     else:
         log.info("layer reporting is not enabled %s, will enable it now", response[2])
         send(device, [SET_REPORT_CHANGE, 1])
         response = recv(device, 500)
         if response[3] != 1:
-            log.error("failed to enable reporting, dig deeper!")
+            log.error("failed to enable layer reporting, dig deeper!")
             return None
 
         log.info(
-            "layer reporting successfully enabled %s, current layer %s, caps word %s",
+            "layer reporting successfully enabled %s, presses are enabled %s, current layer %s, caps word %s",
             response[3],
+            response[4],
             response[1],
             response[2],
         )
-        return response[1], response[2]
+        state = response[1], response[2]
+
+    if response[4] != 0:
+        log.info("report press already enabled %s", response[4])
+    else:
+        log.info("report press is not enabled %s, will enable it now", response[4])
+        send(device, [SET_REPORT_PRESS, 1])
+        response = recv(device, 500)
+        if response[4] != 1:
+            log.error("failed to enable press reporting, dig deeper!")
+            return None
+
+        log.info("press reporting is successfully enabled %s", response[4])
+
+    return state

@@ -25,17 +25,39 @@ pip install -r requirements.txt
 
 Keyboard might be ckecked for compatibility with protocol_tester.py
 
-Build MacOSX app
-
-```
-python -m nuitka --macos-create-app-bundle --static-libpython=no --macos-app-icon=icons/app_icon.png --macos-app-mode=background --include-raw-dir=icons=icons --enable-plugin=pyside6 --macos-app-name=QmkLayoutWidget QmkLayoutWidget.py
-```
-
 Run
 
 ```
 python QmkLayoutWidget.py
 ```
+
+Build MacOSX app
+
+```
+python -m nuitka --macos-create-app-bundle \
+           --static-libpython=no \
+           --macos-app-icon=icons/app_icon.png \
+           --macos-app-mode=background \
+           --include-raw-dir=icons=icons \
+           --enable-plugin=pyside6 \
+           --macos-app-name=QmkLayoutWidget \
+           --output-dir=build \
+           QmkLayoutWidget.py
+
+```
+
+Assemble dmg image with MacOSX app
+
+```
+create-dmg --volname "QmkLayoutWidget Installer" \
+        --window-size 800 400 \
+        --icon "QmkLayoutWidget.app" 200 190 \
+        --app-drop-link 600 185 \
+        build/QmkLayoutWidget-Installer.dmg \
+        build/QmkLayoutWidget.app
+```
+
+
 
 ### App and layer icons
 
