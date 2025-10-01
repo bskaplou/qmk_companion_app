@@ -70,6 +70,10 @@ Recreate existing icons
 python render_icons.py
 ```
 
+### MacOSX
+
+Layers icons can be configured in file $HOME/Library/Preferences/QmkLayoutWidget/configuration.json after first launch.
+
 ### Linux
 
 Crossplatform version works with Linux well at least on my Raspberry Pi for now (I have no other linux desktops around sorry :( ).
