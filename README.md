@@ -15,7 +15,7 @@ Crossplatform version lives in directory 'crossplatform'
 
 Install dependencies
 
-NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems
+NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems.
 
 Python 3.10 or newer is required.
 
@@ -23,7 +23,7 @@ Python 3.10 or newer is required.
 pip install -r requirements.txt
 ```
 
-Keyboard might be ckecked for compatibility with protocol_tester.py
+Keyboard might be checked for compatibility with protocol_tester.py
 
 Run
 
@@ -61,10 +61,10 @@ create-dmg --volname "QmkLayoutWidget Installer" \
 
 ### App and layer icons
 
-Icons are renred from fonts because I'm not a designer. Icons can be created with any tool and should be put into icons directore to be used.
+Icons are rendered from fonts because I'm not a designer. Icons can be created with any tool and should be put into icons directory to be used.
 To add new icons with ttf font It's necessary to edit render_icons.py script.
 
-Recreate existing icons
+Recreate existing icons with command
 
 ```
 python render_icons.py
@@ -104,7 +104,7 @@ Layers configuration might be updated in file $HOME/.config/QmkLayoutWidget/conf
 
 # Unicode characters with fallback and Vial support
 
-Desktop component allows a wide rande of new features and unicode character is just a simple example.
+Desktop component allows a wide range of new features and unicode character is just a simple example.
 
 Qmk already has unicode support which is pretty complex to setup and system dependent.
 https://docs.qmk.fm/features/unicode
