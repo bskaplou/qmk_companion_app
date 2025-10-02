@@ -175,7 +175,12 @@ def setup_application(config):
             tray.setIcon(icons["not_found"])
 
     def emulate_keypress(symbol):
-        original = copykitten.paste()
+        try:
+            original = copykitten.paste()
+        except Exception as e:
+            log.error("opykitten.paste %s", e)
+            original = ""
+
         copykitten.copy(symbol)
         # FIXME imperical value and potentially reduces typing speed
         time.sleep(0.02)
@@ -183,9 +188,13 @@ def setup_application(config):
         keyboard.press("v")
         keyboard.release("v")
         keyboard.release(Key.cmd_l)
+        keyboard.release(Key.cmd_l)
         # FIXME imperical value and potentially reduces typing speed
         time.sleep(0.02)
-        copykitten.copy(original)
+        try:
+            copykitten.copy(original)
+        except Exception as e:
+            log.error("opykitten.copy %s", e)
 
     wait_icon_names = list(
         filter(lambda i: i.startswith("wait"), config["icons"].keys())
