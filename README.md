@@ -4,7 +4,7 @@ Details in this reddit post https://www.reddit.com/r/ErgoMechKeyboards/comments/
 
 ## Firmware dependency
 
-Companion applicaton should work only with keyboards with firmware including module this https://github.com/bskaplou/companion_hid
+Companion applicaton should work only with keyboards with firmware compiled with module companion_hid from here https://github.com/bskaplou/qmk_modules
 
 ## Crossplatform version
 
@@ -115,7 +115,7 @@ Current implementation expected to be less hacky.
 
 ## How it works and how to run it with QMK/Vial
 
-Vial firmware compilation skill required to make it work.
+QMK/Vial firmware compilation skill required to make it work.
 
 Unicode characters are embedded into firmware.
 They are embedded into two places:
