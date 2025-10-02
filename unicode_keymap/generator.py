@@ -50,7 +50,7 @@ else:
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   const char* fallback = unisymbols[keycode - SAFE_START][0];
   const uint32_t symbol = *((uint32_t*) unisymbols[keycode - SAFE_START][1]);
-  if(keycode >= SAFE_START) {
+  if(keycode >= SAFE_START && keycode <= %s) {
       if (record->event.pressed) {
           companion_hid_report_press(symbol, fallback);
       }
@@ -105,7 +105,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     print("#define SAFE_START QK_KB_0\n")
     print(unicode_keycodes)
     print(unisymbols)
-    print(process_function)
+    print(process_function % constant)
     print("=============== put following code into vial.json ===============")
     print(vial_keycodes)
     print("=================================================================")

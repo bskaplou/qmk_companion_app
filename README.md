@@ -164,7 +164,7 @@ const char* unisymbols[][2] = {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   const char* fallback = unisymbols[keycode - SAFE_START][0];
   const uint32_t symbol = *((uint32_t*) unisymbols[keycode - SAFE_START][1]);
-  if(keycode >= SAFE_START) {
+  if(keycode >= SAFE_START && keycode <= FACE_WITH_TEARS_OF_JOY) {
       if (record->event.pressed) {
           companion_hid_report_press(symbol, fallback);
       }
