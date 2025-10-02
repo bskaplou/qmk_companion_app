@@ -108,7 +108,7 @@ Desktop component allows a wide range of new features and unicode character is j
 Qmk already has unicode support which is pretty complex to setup and system dependent.
 https://docs.qmk.fm/features/unicode
 
-Qmk unicode support is even called a hach sometimes.
+Qmk unicode support is even called a "hack" sometimes.
 https://getreuer.info/posts/keyboards/non-english/index.html#unicode-input
 
 Current implementation expected to be less hacky.
