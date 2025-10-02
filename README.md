@@ -136,7 +136,7 @@ It's not necessary to update OS keyboard settings, not necessary to add special 
 
 Vial will allow to assign unicode characters with "User" tab of tab "Keymap" after keyboard firmware update.
 
-If keyboard with firmware which includes these chages is connected to computer with companion app user will be able just to push buttons and get unicode characters like 😁 and 😂.
+If keyboard with firmware which includes these changes is connected to computer with companion app user will be able just to push buttons and get unicode characters like 😁 and 😂.
 
 If keyboard is connected to computer without companion app runing it will send fallback strings instead like : grin : and : joy : .
 
