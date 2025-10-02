@@ -113,7 +113,7 @@ https://getreuer.info/posts/keyboards/non-english/index.html#unicode-input
 
 Current implementation expected to be less hacky.
 
-## How it works and how to run it work
+## How it works and how to run it with QMK/Vial
 
 Vial firmware compilation skill required to make it work.
 
@@ -127,7 +127,9 @@ Current repository contains python script which creates both parts for unicode c
 
 This script takes unicode characters as arguments and dumps code for both keymap.c and vial.json as a result.
 
-It's necessary to put related peaces of code into keymap.c after the last include and into vial.json after first '{'
+It's necessary to put related peaces of code into keymap.c after the last include and into vial.json after first '{'. 
+
+If you are using QMK without Vial, ignore vial.json part.
 
 NB both companion_hid and qmk_companion_app required for full functionality.
 
