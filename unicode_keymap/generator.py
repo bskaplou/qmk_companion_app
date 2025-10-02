@@ -80,7 +80,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         if symbol in emojis:
             fallback = emojis[symbol]
         else:
-            fallback = ":" + t.lower().replace(" ", "_").replace("-", "_") + ":"
+            fallback = ":" + title.lower().replace(" ", "_").replace("-", "_") + ":"
 
         short_name = "".join(symbol_hex).lstrip("0")
         name = "U+" + short_name
