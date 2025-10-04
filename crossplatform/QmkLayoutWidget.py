@@ -10,7 +10,7 @@ import logging
 from pathlib import Path
 import os.path
 import random
-from PySide6.QtGui import QIcon, QAction
+from PySide6.QtGui import QIcon, QAction, QGuiApplication
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
 from PySide6.QtCore import (
     Signal,
@@ -20,6 +20,7 @@ from PySide6.QtCore import (
     QObject,
     QStandardPaths,
     QSysInfo,
+    Qt,
 )
 
 from pprint import pp
@@ -96,7 +97,7 @@ DEFAULT_CONFIG = {
         "wait1": "wait1",
         "wait2": "wait2",
         "not_found": "not_found",
-    }
+    },
 }
 
 
@@ -117,7 +118,9 @@ def init_config():
     try:
         with open(file_path, "rb") as f:
             config = json.loads(f.read())
-            config['config_directory'] = os.path.join(config_locations[0], APPLICATION_NAME)
+            config["config_directory"] = os.path.join(
+                config_locations[0], APPLICATION_NAME
+            )
     except FileNotFoundError as e:
         log.info(
             'configuration file "%s" not found, I\'ll try to create it', e.filename
@@ -208,26 +211,41 @@ def setup_application(config):
     app = QApplication([])
 
     icon_tail = "white"
-    if config.get("mode", "dark").lower() != "dark":
+    if config.get("mode", "dark").lower() == "light":
         icon_tail = "black"
+    elif config.get("mode", "dark").lower() == "auto":
+        os_color_scheme = QGuiApplication.styleHints().colorScheme()
+        log.info("os color scheme detected: %s", os_color_scheme)
+        if os_color_scheme == Qt.ColorScheme.Light:
+            icon_tail = "black"
+        elif os_color_scheme == Qt.ColorScheme.Dark:
+            icon_tail = "white"
+        else:
+            icon_tail = "white"
 
     current_dir = Path(__file__).parent
     icons = {}
     for name, icon in config["icons"].items():
         app_icon_path = os.path.join(current_dir, "icons", f"{icon}_{icon_tail}.png")
-        config_icon_path_tail = os.path.join(config["config_directory"], f"{icon}_{icon_tail}.png")
+        config_icon_path_tail = os.path.join(
+            config["config_directory"], f"{icon}_{icon_tail}.png"
+        )
         config_icon_path = os.path.join(config["config_directory"], f"{icon}.png")
         if os.path.isfile(app_icon_path):
             icons[name] = QIcon(app_icon_path)
             log.info("icon '%s' loaded from file '%s'", name, app_icon_path)
-        elif os.path.isfile(config_icon_path): 
+        elif os.path.isfile(config_icon_path):
             icons[name] = QIcon(config_icon_path)
             log.info("icon '%s' loaded from file '%s'", name, config_icon_path)
-        elif os.path.isfile(config_icon_path_tail): 
+        elif os.path.isfile(config_icon_path_tail):
             icons[name] = QIcon(config_icon_path_tail)
             log.info("icon '%s' loaded from file '%s'", name, config_icon_path_tail)
         else:
-            log.error("failed to load icon '%s' from paths %s", name, [app_icon_path, config_icon_path, config_icon_path_tail])
+            log.error(
+                "failed to load icon '%s' from paths %s",
+                name,
+                [app_icon_path, config_icon_path, config_icon_path_tail],
+            )
 
     app.setQuitOnLastWindowClosed(False)
 
