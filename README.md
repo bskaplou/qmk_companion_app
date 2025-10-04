@@ -69,6 +69,8 @@ Recreate existing icons with command
 python render_icons.py
 ```
 
+User might use own icons, to do so it's necessary to put them info configuration directory nearby the configuration.json file and write icon filename without an extension into configuration.json.
+
 ### MacOSX
 
 Layers icons can be configured in file $HOME/Library/Preferences/QmkLayoutWidget/configuration.json after first launch.

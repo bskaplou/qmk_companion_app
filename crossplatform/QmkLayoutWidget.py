@@ -116,7 +116,8 @@ def init_config():
 
     try:
         with open(file_path, "rb") as f:
-            return json.loads(f.read())
+            config = json.loads(f.read())
+            config['config_directory'] = os.path.join(config_locations[0], APPLICATION_NAME)
     except FileNotFoundError as e:
         log.info(
             'configuration file "%s" not found, I\'ll try to create it', e.filename
@@ -137,7 +138,9 @@ def init_config():
 
         log.info("default config %s written feel free to edit", file_path)
 
-        return init_config()
+        config = init_config()
+
+    return config
 
 
 class DevicesSignal(QObject):
@@ -189,7 +192,6 @@ def setup_application(config):
         keyboard.press("v")
         keyboard.release("v")
         keyboard.release(Key.cmd_l)
-        keyboard.release(Key.cmd_l)
         # FIXME imperical value and potentially reduces typing speed
         time.sleep(0.02)
         try:
@@ -212,9 +214,20 @@ def setup_application(config):
     current_dir = Path(__file__).parent
     icons = {}
     for name, icon in config["icons"].items():
-        icons[name] = QIcon(
-            os.path.join(current_dir, "icons", f"{icon}_{icon_tail}.png")
-        )
+        app_icon_path = os.path.join(current_dir, "icons", f"{icon}_{icon_tail}.png")
+        config_icon_path_tail = os.path.join(config["config_directory"], f"{icon}_{icon_tail}.png")
+        config_icon_path = os.path.join(config["config_directory"], f"{icon}.png")
+        if os.path.isfile(app_icon_path):
+            icons[name] = QIcon(app_icon_path)
+            log.info("icon '%s' loaded from file '%s'", name, app_icon_path)
+        elif os.path.isfile(config_icon_path): 
+            icons[name] = QIcon(config_icon_path)
+            log.info("icon '%s' loaded from file '%s'", name, config_icon_path)
+        elif os.path.isfile(config_icon_path_tail): 
+            icons[name] = QIcon(config_icon_path_tail)
+            log.info("icon '%s' loaded from file '%s'", name, config_icon_path_tail)
+        else:
+            log.error("failed to load icon '%s' from paths %s", name, [app_icon_path, config_icon_path, config_icon_path_tail])
 
     app.setQuitOnLastWindowClosed(False)
 

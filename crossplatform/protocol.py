@@ -68,16 +68,20 @@ def candidates(raw_usage_page=RAW_USAGE_PAGE, raw_usage_id=RAW_USAGE_ID):
     return candidates
 
 
-def send(device, data):
+def send(device, data, raw=False):
     request_data = [0x00] * (MESSAGE_LENGTH + 1)  # First byte is Report ID
-    request_data[1] = HID_LAYERS_IN
-    request_data[2 : len(data)] = data
+    if not raw:
+        request_data[1] = HID_LAYERS_IN
+        request_data[2 : len(data)] = data
+    else:
+        request_data[1 : len(data)] = data
+
     request = bytes(request_data)
 
     return device.write(request)
 
 
-def recv(device, timeout=None):
+def recv(device, timeout=None, raw=False):
     finish_before = round(time.time() * 1000) + (0 if timeout is None else timeout)
 
     while timeout is None or round(time.time() * 1000) < finish_before:
@@ -88,9 +92,7 @@ def recv(device, timeout=None):
         if len(response) == 0:
             log.info("read timeout")
             return None
-        elif (
-            response[0] >= HID_LAYERS_OUT_STATE and response[0] <= HID_LAYERS_OUT_ERROR
-        ):
+        elif raw or (response[0] >= HID_LAYERS_OUT_STATE and response[0] <= HID_LAYERS_OUT_ERROR):
             return response
         else:
             log.error("non-protocol HID message received %s", response)
