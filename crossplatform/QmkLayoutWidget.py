@@ -80,6 +80,7 @@ APPLICATION_NAME = "QmkLayoutWidget"
 CONFIG_FILE = "configuration.json"
 
 DEFAULT_CONFIG = {
+    "mode": "dark" if QSysInfo.kernelType() == "darwin" else "light",
     "icons": {
         "0": "default",
         "1": "navigation",
@@ -204,7 +205,10 @@ def setup_application(config):
 
     app = QApplication([])
 
-    icon_tail = "white" if QSysInfo.kernelType() == "darwin" else "black"
+    icon_tail = "white"
+    if config.get("mode", "dark").lower() != "dark":
+        icon_tail = "black"
+
     current_dir = Path(__file__).parent
     icons = {}
     for name, icon in config["icons"].items():
