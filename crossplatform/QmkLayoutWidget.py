@@ -37,7 +37,17 @@ device = None
 stop = False
 
 
-def process_loop(callback_state, callback_wait, callback_select_device, callback_press):
+def capture_coords(count=1):
+    protocol.send(device, [protocol.SET_REPORT_NEXT_COORDS, count])
+
+
+def process_loop(
+    callback_state,
+    callback_wait,
+    callback_select_device,
+    callback_press,
+    callback_coords,
+):
     global device
     while not stop:
         callback_wait()
@@ -68,6 +78,11 @@ def process_loop(callback_state, callback_wait, callback_select_device, callback
                             elif message[0] == protocol.HID_LAYERS_OUT_PRESS:
                                 symbol = message[1:5].decode("utf32")
                                 callback_press(symbol)
+                            elif message[0] == protocol.HID_LAYERS_OUT_COORDS:
+                                col, row = message[1:2]
+                                action = "release" if message[3] == 0 else "press"
+                                callback_coords(col, row, action)
+
                         except hid.HIDException as e:
                             log.error("hid receive error %s", device_info["path"])
                             break
@@ -181,6 +196,11 @@ def setup_application(config):
         else:
             tray.setIcon(icons["not_found"])
 
+    def coords_received(col, row, action):
+        log.info(
+            "coordinates received col = %s, row = %s, action = %s", col, row, action
+        )
+
     def emulate_keypress(symbol):
         try:
             original = copykitten.paste()
@@ -269,7 +289,11 @@ def setup_application(config):
     pool = QThreadPool()
     pool.start(
         lambda: process_loop(
-            update_state_icon, wait_for_device, select_device, emulate_keypress
+            update_state_icon,
+            wait_for_device,
+            select_device,
+            emulate_keypress,
+            coords_received,
         )
     )
 

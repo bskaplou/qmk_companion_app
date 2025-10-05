@@ -67,7 +67,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     symbols = sorted(set(sys.argv[1:]))
     for idx, symbol in enumerate(symbols):
-        symbol_bytes = list(reversed(bytes(symbol, "utf32")[4:]))
+        if len(symbol) > 1 and symbol[0].lower() == "u":
+            if len(symbol) % 2 == 0:
+                symbol = "u0" + symbol[1:]
+
+            symbol_bytes = list((bytes([0, 0, 0]) + bytes.fromhex(symbol[1:]))[-4:])
+            symbol = str(bytes(list(reversed(symbol_bytes))), "utf32")
+        else:
+            symbol_bytes = list(reversed(bytes(symbol, "utf32")[4:]))
+
         symbol_hex = []
         for byte in symbol_bytes:
             symbol_hex.append("%0.2X" % byte)

@@ -17,12 +17,14 @@ HID_LAYERS_OUT_STATE = 0x89
 HID_LAYERS_OUT_PRESS = 0x90
 HID_LAYERS_OUT_VERSION = 0x91
 HID_LAYERS_OUT_ERROR = 0x92
+HID_LAYERS_OUT_COORDS = 0x93
 
 GET_VERSION = 0x00
 GET_LAYERS_STATE = 0x01
 SET_REPORT_CHANGE = 0x02
 INVERT_LAYER = 0x03
 SET_REPORT_PRESS = 0x04
+SET_REPORT_NEXT_COORDS = 0x05
 
 # raw hid specific
 MESSAGE_LENGTH = 32
@@ -92,7 +94,7 @@ def recv(device, timeout=None, raw=False):
         if len(response) == 0:
             log.info("read timeout")
             return None
-        elif raw or (response[0] >= HID_LAYERS_OUT_STATE and response[0] <= HID_LAYERS_OUT_ERROR):
+        elif raw or (response[0] >= HID_LAYERS_OUT_STATE and response[0] <= HID_LAYERS_OUT_COORDS):
             return response
         else:
             log.error("non-protocol HID message received %s", response)
