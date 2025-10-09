@@ -112,7 +112,7 @@ class Window(QWidget):
         scale_y = height / (self.max_y + 0.3)
         shift_x = -scale_x / 8
         shift_y = -scale_y / 4
-        dot_size = 0.24 * scale_y
+        dot_size = 0.23 * scale_y
         rounding = dot_size * 0.4
 
         if self.step < 3:

@@ -19,6 +19,7 @@ from PySide6.QtCore import (
     QStandardPaths,
     QSysInfo,
     Qt,
+    QTimer,
 )
 import logging
 
@@ -45,7 +46,7 @@ def load_touchboard_keymap(device):
     if vial_meta is None:
         return None
 
-    layers_count = protocol.load_layers_count(device)
+    # layers_count = protocol.load_layers_count(device)
     keymap = vial_meta
 
     # keys = []
@@ -120,6 +121,7 @@ DEFAULT_TOUCHBOARD_RIGHT = "→"
 
 DEFAULT_CONFIG = {
     "mode": "dark" if QSysInfo.kernelType() == "darwin" else "light",
+    "touchboard-layer": "<type_your_touchboard_layer_here>",
     "icons": {
         "0": "default",
         "1": "navigation",
@@ -202,11 +204,10 @@ class Signals(QObject):
     press_received = Signal(object)
 
 
-wait_pos = 0
-touchboard_displayed = False
-
-
 def setup_application(config):
+    wait_pos = 0
+    touchboard_displayed = False
+
     def shutdown():
         global stop
         log.info("shutting down app")
@@ -222,7 +223,7 @@ def setup_application(config):
         return 0
 
     def wait_for_device():
-        global wait_pos
+        nonlocal wait_pos
         tray.setIcon(icons[wait_icon_names[wait_pos]])
         wait_pos = (wait_pos + 1) % len(wait_icon_names)
 
@@ -373,7 +374,7 @@ def setup_application(config):
 
     @Slot()
     def update_icon_and_touchboard(arg):
-        global touchboard_displayed
+        nonlocal touchboard_displayed
         layer, caps_word = arg
         layer = str(layer)
         if caps_word != 0:
@@ -391,50 +392,65 @@ def setup_application(config):
             touchboard.hide()
             touchboard_displayed = False
 
+    doubleclick_waiting = False
+    doubleclick_timer = QTimer()
+
+    @Slot()
+    def doubleclick_timeout():
+        nonlocal doubleclick_waiting
+        doubleclick_waiting = False
+        protocol.send(
+            device, [protocol.INVERT_LAYER, int(config.get("touchboard-layer"))]
+        )
+
+    doubleclick_timer.setInterval(300)
+    doubleclick_timer.timeout.connect(doubleclick_timeout)
+    doubleclick_timer.setSingleShot(True)
+
     @Slot()
     def handle_press(arg):
+        nonlocal touchboard_displayed, doubleclick_waiting, doubleclick_timer
         symbol, row, col, action = arg
         if (
             symbol == config.get("touchboard-move", DEFAULT_TOUCHBOARD_MOVE)
             and action == "release"
         ):
             x, y = touchboard.dive(row, col)
-            mouse.position = (
-                x,
-                y,
-            )
+            mouse.position = (x, y)
         elif (
             symbol == config.get("touchboard-button-1", DEFAULT_TOUCHBOARD_LEFT)
             and action == "press"
         ):
             mouse.press(Button.left)
-            touchboard.draw_initial()
+            if not doubleclick_waiting:
+                touchboard.draw_initial()
         elif (
             symbol == config.get("touchboard-button-2", DEFAULT_TOUCHBOARD_RIGHT)
             and action == "press"
         ):
             mouse.press(Button.right)
-            touchboard.draw_initial()
+            if not doubleclick_waiting:
+                touchboard.draw_initial()
         elif (
             symbol == config.get("touchboard-button-1", DEFAULT_TOUCHBOARD_LEFT)
             and action == "release"
         ):
             mouse.release(Button.left)
             touchboard.hide()
-            touchboard_displayed = False
-            protocol.send(
-                device, [protocol.INVERT_LAYER, int(config.get("touchboard-layer"))]
-            )
+            if not doubleclick_waiting:
+                touchboard_displayed = False
+                doubleclick_waiting = True
+                doubleclick_timer.start()
         elif (
             symbol == config.get("touchboard-button-2", DEFAULT_TOUCHBOARD_RIGHT)
             and action == "release"
         ):
             mouse.release(Button.right)
             touchboard.hide()
-            touchboard_displayed = False
-            protocol.send(
-                device, [protocol.INVERT_LAYER, int(config.get("touchboard-layer"))]
-            )
+            if not doubleclick_waiting:
+                touchboard_displayed = False
+                doubleclick_waiting = True
+                doubleclick_timer.start()
         elif action == "release":
             emulate_keypress(symbol)
 
