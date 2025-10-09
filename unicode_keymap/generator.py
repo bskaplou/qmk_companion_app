@@ -7,6 +7,24 @@ import json
 from pathlib import Path
 import os
 
+TOUCHBOARD_BUTTONS = {
+    "🐁": {
+        "name": "Touchboard Move",
+        "shortName": "TB_MOVE",
+        "title": "Touchboard pointer move button",
+    },
+    "←": {
+        "name": "Touchboard Left button",
+        "shortName": "TB_1",
+        "title": "Touchboard left button",
+    },
+    "→": {
+        "name": "Touchboard Right button",
+        "shortName": "TB_2",
+        "title": "Touchboard right button",
+    },
+}
+
 current_dir = Path(__file__).parent
 emojilist_path = os.path.join(current_dir, "emojilist.txt")
 
@@ -20,37 +38,11 @@ with open(emojilist_path, "r") as f:
 if len(sys.argv) == 1:
     print(json.dumps(emojis, indent=4, ensure_ascii=False))
 else:
-
-    # TARGET FORMAT
-    #
-    # enum unicode_keycodes {
-    #   GRINNING_FACE = SAFE_START,
-    #   FROWNING_FACE,
-    # };
-    #
-    # const char* unisymbols[][2] = {
-    #     {":-)", (char*) U"\U0001F600"},
-    #     {"'=D", (char*) U"\U0001F605"},
-    #     {">:)", (char*) U"\U0001F605"},
-    # };
-
-    #    "customKeycodes": [
-    # 	      {
-    #            "name": "Grinning face",
-    # 	          "title": "Grinning face",
-    # 	          "shortName": "UNC_GF"
-    # 	      },
-    # 	      {
-    #            "name": "Sweating face",
-    # 	          "title": "Grinning face with sweat",
-    # 	          "shortName": "UNC_SF"
-    # 	      }
-    #    ],
     process_function = """
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  const char* fallback = unisymbols[keycode - SAFE_START][0];
-  const uint32_t symbol = *((uint32_t*) unisymbols[keycode - SAFE_START][1]);
-  if(keycode >= SAFE_START && keycode <= %s) {
+  if(keycode >= COMPANION_HID_SAFE_RANGE && keycode <= %s) {
+      const char* fallback = unisymbols[keycode - COMPANION_HID_SAFE_RANGE][0];
+      const uint32_t symbol = *((uint32_t*) unisymbols[keycode - COMPANION_HID_SAFE_RANGE][1]);
       companion_hid_report_press(symbol, fallback, record);
       return false;
   } else {
@@ -63,7 +55,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     unisymbols = "const char* unisymbols[][2] = {\n"
     vial_keycodes = '    "customKeycodes": [\n'
 
-    symbols = sorted(set(sys.argv[1:]))
+    if sys.argv[1] in (
+        "-t",
+        "--touchboard",
+    ):
+        symbols = list(TOUCHBOARD_BUTTONS.keys()) + sorted(set(sys.argv[2:]))
+        gen_touchboard = True
+    else:
+        symbols = sorted(set(sys.argv[1:]))
+        gen_touchboard = False
+
     for idx, symbol in enumerate(symbols):
         if len(symbol) > 1 and symbol[0].lower() == "u":
             if len(symbol) % 2 == 0:
@@ -80,23 +81,43 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
         symbol_char = "U" + "".join(symbol_hex)
 
-        title = unicodedata.name(symbol).title()
-        constant = title.upper().replace(" ", "_").replace("-", "_")
-
-        if symbol in emojis:
-            fallback = emojis[symbol]
+        if symbol in TOUCHBOARD_BUTTONS:
+            tb = TOUCHBOARD_BUTTONS[symbol]
+            title = tb["shortName"]
+            constant = tb["shortName"]
+            short_name = tb["shortName"]
+            name = tb["name"]
+            fallback = tb["name"]
         else:
-            fallback = ":" + title.lower().replace(" ", "_").replace("-", "_") + ":"
 
-        short_name = "".join(symbol_hex).lstrip("0")
-        name = "U+" + short_name
+            title = unicodedata.name(symbol).title()
+            constant = title.upper().replace(" ", "_").replace("-", "_")
 
-        if idx == 0:
-            unicode_keycodes = unicode_keycodes + f"    {constant} = SAFE_START,\n"
-        else:
+            if symbol in emojis:
+                fallback = emojis[symbol]
+            else:
+                fallback = ":" + title.lower().replace(" ", "_").replace("-", "_") + ":"
+
+            if symbol.isascii():
+                short_name = symbol
+            elif len(title) > 6:
+                short_name = "".join(symbol_hex).lstrip("0")
+            else:
+                short_name = title
+            name = "U+" + "".join(symbol_hex).lstrip("0")
+
+        if (idx == 0 and not gen_touchboard) or (idx == 3 and gen_touchboard):
+            unicode_keycodes = (
+                unicode_keycodes + f"    {constant} = COMPANION_HID_SAFE_RANGE,\n"
+            )
+            unisymbols = (
+                unisymbols + f'    {{"{fallback}", (char*) U"\\{symbol_char}"}},\n'
+            )
+        elif not gen_touchboard or idx > 3:
             unicode_keycodes = unicode_keycodes + f"    {constant},\n"
-
-        unisymbols = unisymbols + f'    {{"{fallback}", (char*) U"\\{symbol_char}"}},\n'
+            unisymbols = (
+                unisymbols + f'    {{"{fallback}", (char*) U"\\{symbol_char}"}},\n'
+            )
 
         vial_keycodes = (
             vial_keycodes
@@ -108,10 +129,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     vial_keycodes = vial_keycodes[0:-2] + "\n    ],"
 
     print("===============  put following code into keymap.c ===============")
-    print("#define SAFE_START QK_KB_0\n")
-    print(unicode_keycodes)
-    print(unisymbols)
-    print(process_function % constant)
+    if len(unicode_keycodes) > 32:
+        print(unicode_keycodes)
+        print(unisymbols)
+        print(process_function % constant)
+    else:
+        print("# NOTHING to add into keymap.c, because of no unicode characters to map")
     print("=============== put following code into vial.json ===============")
     print(vial_keycodes)
     print("=================================================================")

@@ -4,6 +4,9 @@
 import hid
 import time
 import logging
+import json
+import lzma
+import struct
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +29,12 @@ SET_REPORT_PRESS = 0x04
 
 # raw hid specific
 MESSAGE_LENGTH = 32
+
+CMD_VIA_VIAL_PREFIX = 0xFE
+CMD_VIAL_GET_SIZE = 0x01
+CMD_VIAL_GET_DEFINITION = 0x02
+CMD_VIA_GET_LAYER_COUNT = 0x11
+CMD_VIA_KEYMAP_GET_BUFFER = 0x12
 
 
 def open(product_id, vendor_id, path):
@@ -148,3 +157,83 @@ def enable_reporting_and_get_state(device):
         log.info("press reporting is successfully enabled %s", response[4])
 
     return state
+
+
+def disable_reporting(device):
+    log.info("disabling reporting")
+    send(device, [SET_REPORT_CHANGE, 0])
+    send(device, [SET_REPORT_PRESS, 0])
+
+
+def load_vial_meta(device):
+    send(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_SIZE], raw=True)
+    response = recv(device, timeout=100, raw=True)
+    if response is None:
+        log.error("failed to load vial meta size with timeout")
+        return None
+    size = struct.unpack("<I", response[0:4])[0]
+    log.info("vial_meta size of device %s is %s", device.product, size)
+    remaining_size = size
+    layout = b""
+    block = 0
+    while remaining_size > 0:
+        send(
+            device,
+            struct.pack("<BBI", CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_DEFINITION, block),
+            raw=True,
+        )
+        data = recv(device, timeout=100, raw=True)
+        if data is None:
+            log.info("failed to load block %s of vial definition", block)
+            return None
+        if remaining_size < MESSAGE_LENGTH:
+            data = data[:remaining_size]
+        layout += data
+        block += 1
+        remaining_size -= MESSAGE_LENGTH
+
+    log.info("successfully loaded vial meta definition")
+    return json.loads(lzma.decompress(layout))
+
+
+def load_layers_count(device):
+    send(device, [CMD_VIA_GET_LAYER_COUNT], raw=True)
+    response = recv(device, timeout=100, raw=True)
+    if response is None:
+        log.error("failed to load layers count")
+        return None
+    layers_count = response[1]
+    log.info("loaded layers count %s", layers_count)
+    return layers_count
+
+
+BUFFER_FETCH_CHUNK = 28
+
+
+def load_layers_keymaps(device, layers, rows, cols, keys):
+    size = layers * rows * cols * 2
+    log.info("loading layers/keymaps of size %s", size)
+    keymap = b""
+    for x in range(0, size, BUFFER_FETCH_CHUNK):
+        offset = x
+        sz = min(size - offset, BUFFER_FETCH_CHUNK)
+        send(
+            device, struct.pack(">BHB", CMD_VIA_KEYMAP_GET_BUFFER, offset, sz), raw=True
+        )
+        data = recv(device, timeout=100, raw=True)
+        keymap += data[4 : 4 + sz]
+
+    log.info("successfully loaded layers/keymaps")
+
+    layers_keymaps = []
+    for layer in range(layers):
+        keydict = {}
+        for key in keys:
+            row, col = list(map(int, key.split(",")))
+            offset = layer * rows * cols * 2 + row * cols * 2 + col * 2
+            keycode = struct.unpack(">H", keymap[offset : offset + 2])[0]
+            keydict[key] = keycode
+
+        layers_keymaps.append(keydict)
+
+    return layers_keymaps

@@ -191,3 +191,135 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     ],
 =================================================================
 ```
+
+# Pointer operation with keayboard
+
+This feature is called "touchboard" all around the code.
+
+
+## How to prepare firmware
+It's necessary put following string into the file keyboards/<your_keyboard>/keymaps/<your_keymap>/config.h
+
+```
+#define COMPANION_HID_TOUCHBOARD
+```
+
+For configuration with Vial it's necessary to run unicode_keymap/generator.py with option -t to create additional content for file keyboards/<your_keyboard>/keymaps/<your_keymap>/vial.json. This step is necessary to assign TB_MOVE, TB_1, TB_2 to user configured buttons in Vial.
+
+Example
+
+```
+❯ python ../unicode_keymap/generator.py -t
+===============  put following code into keymap.c ===============
+# NOTHING to add into keymap.c, because of no unicode characters to map
+=============== put following code into vial.json ===============
+    "customKeycodes": [
+        {
+            "name": "Touchboard Move",
+            "title": "TB_MOVE",
+            "shortName": "TB_MOVE"
+        },
+        {
+            "name": "Touchboard Left button",
+            "title": "TB_1",
+            "shortName": "TB_1"
+        },
+        {
+            "name": "Touchboard Right button",
+            "title": "TB_2",
+            "shortName": "TB_2"
+        }
+    ],
+=================================================================
+```
+
+If you need to use unicode characters and touchboard at one additional symbols might be passed to generator.py
+
+```
+===============  put following code into keymap.c ===============
+enum unicode_keycodes {
+    FACE_WITH_TEARS_OF_JOY = COMPANION_HID_SAFE_RANGE,
+};
+
+const char* unisymbols[][2] = {
+    {":joy:", (char*) U"\U0001F602"},
+};
+
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  if(keycode >= COMPANION_HID_SAFE_RANGE && keycode <= FACE_WITH_TEARS_OF_JOY) {
+      const char* fallback = unisymbols[keycode - COMPANION_HID_SAFE_RANGE][0];
+      const uint32_t symbol = *((uint32_t*) unisymbols[keycode - COMPANION_HID_SAFE_RANGE][1]);
+      companion_hid_report_press(symbol, fallback, record);
+      return false;
+  } else {
+      return true;
+  }
+}
+
+=============== put following code into vial.json ===============
+    "customKeycodes": [
+        {
+            "name": "Touchboard Move",
+            "title": "TB_MOVE",
+            "shortName": "TB_MOVE"
+        },
+        {
+            "name": "Touchboard Left button",
+            "title": "TB_1",
+            "shortName": "TB_1"
+        },
+        {
+            "name": "Touchboard Right button",
+            "title": "TB_2",
+            "shortName": "TB_2"
+        },
+        {
+            "name": "U+1F602",
+            "title": "Face With Tears Of Joy",
+            "shortName": "1F602"
+        }
+    ],
+=================================================================
+```
+
+Put generated code into related files.
+
+## Layout setup
+
+With QMK or Vial assign TB_* buttons on the layer of your choice.
+For now TB_MOVE should be assigned to all buttons except last row. TB_1 and TB_2 should be assigned to the last row.
+
+## Companion app configuration
+
+It's necessaty to add key with number of layer which is used for navigation with touchboard as follows.
+
+```
+    "touchboard-layer": "5",
+
+```
+
+If keyboard uses Vial firmware app will load keymap directly from keyboard.
+
+For QMK firmware it's necessary to add to add keymap configuration in keymap-layout-editor format as in example below.
+
+```
+    "touchboard-keymap": [
+      [
+        {"y": 0.25}, "0,0", "0,1", {"y": -0.25}, "0,2", "0,3", {"y": 0.25}, "0,4", {"y": 0.25}, "0,5",
+        {"x": 1.25}, "5,5", {"y": -0.25}, "5,4", {"y": -0.25}, "5,3", "5,2", {"y": 0.25}, "5,1", "5,0"
+      ],
+      [
+        "1,0", "1,1", {"y": -0.25}, "1,2", "1,3", {"y": 0.25}, "1,4", {"y": 0.25}, "1,5", {"x": 1.25},
+        "6,5", {"y": -0.25}, "6,4", {"y": -0.25}, "6,3", "6,2", {"y": 0.25}, "6,1", "6,0"
+      ],
+      [
+        "2,0", "2,1", {"y": -0.25}, "2,2", "2,3", {"y": 0.25}, "2,4", {"y": 0.25}, "2,5",
+        {"x": 1.25}, "7,5", {"y": -0.25}, "7,4", {"y": -0.25}, "7,3", "7,2", {"y": 0.25}, "7,1", "7,0"
+      ],
+      [
+        "3,0","3,1", {"y": -0.25}, "3,2", "3,3", {"y": 0.25}, "3,4", {"y": 0.25}, "3,5",
+        {"x": 1.25}, "8,5", {"y": -0.25}, "8,4", {"y": -0.25}, "8,3", "8,2", {"y": 0.25}, "8,1", "8,0"
+      ]
+    ],
+```

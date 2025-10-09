@@ -4,9 +4,7 @@
 import threading
 import time
 import hid
-import protocol
 import json
-import logging
 from pathlib import Path
 import os.path
 import random
@@ -22,19 +20,42 @@ from PySide6.QtCore import (
     QSysInfo,
     Qt,
 )
+import logging
 
+import protocol
+import overlay
 from pprint import pp
 
 from pynput.keyboard import Key, Controller
+from pynput.mouse import Button, Controller as MouseController
 import copykitten
 
 logging.basicConfig(encoding="utf-8", level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 keyboard = Controller()
+mouse = MouseController()
 
 device = None
 stop = False
+
+
+def load_touchboard_keymap(device):
+    vial_meta = protocol.load_vial_meta(device)
+    if vial_meta is None:
+        return None
+
+    layers_count = protocol.load_layers_count(device)
+    keymap = vial_meta
+
+    # keys = []
+    # for row in vial_meta["layouts"]["keymap"]:
+    #    keys = keys + list(filter(lambda e: isinstance(e, str), row))
+
+    # layers_keymaps = protocol.load_layers_keymaps(device, layers_count, vial_meta["matrix"]["rows"], vial_meta["matrix"]["cols"], keys)
+    # pp(layers_keymaps)
+
+    return keymap
 
 
 def process_loop(
@@ -42,6 +63,7 @@ def process_loop(
     callback_wait,
     callback_select_device,
     callback_press,
+    callback_vial_meta=None,
 ):
     global device
     while not stop:
@@ -59,6 +81,9 @@ def process_loop(
                     protocol.close(device)
                 else:
                     current_layer, caps_word = state
+                    if callback_vial_meta is not None:
+                        vial_meta = load_touchboard_keymap(device)
+                        callback_vial_meta(vial_meta)
                     callback_state(current_layer, caps_word)
 
                     while True:
@@ -72,9 +97,9 @@ def process_loop(
                                 callback_state(current_layer, caps_word)
                             elif message[0] == protocol.HID_LAYERS_OUT_PRESS:
                                 symbol = message[1:5].decode("utf32")
-                                col, row = message[5:7]
+                                row, col = message[5:7]
                                 action = "release" if message[7] == 0 else "press"
-                                callback_press(symbol, col, row, action)
+                                callback_press(symbol, row, col, action)
 
                         except hid.HIDException as e:
                             log.error("hid receive error %s", device_info["path"])
@@ -87,6 +112,11 @@ def process_loop(
 
 APPLICATION_NAME = "QmkLayoutWidget"
 CONFIG_FILE = "configuration.json"
+TOUCHBOARD_KEYMAP_FILE = "touchboard-keymap.json"
+
+DEFAULT_TOUCHBOARD_MOVE = "🐁"
+DEFAULT_TOUCHBOARD_LEFT = "←"
+DEFAULT_TOUCHBOARD_RIGHT = "→"
 
 DEFAULT_CONFIG = {
     "mode": "dark" if QSysInfo.kernelType() == "darwin" else "light",
@@ -100,6 +130,8 @@ DEFAULT_CONFIG = {
         "6": "symbols",
         "7": "shortcuts",
         "8": "media",
+        "9": "functional",
+        "10": "modifiers",
         "caps_word": "caps_word",
         "wait0": "wait0",
         "wait1": "wait1",
@@ -134,6 +166,16 @@ def init_config():
             'configuration file "%s" not found, I\'ll try to create it', e.filename
         )
 
+    keymap_file = os.path.join(
+        config_locations[0], APPLICATION_NAME, TOUCHBOARD_KEYMAP_FILE
+    )
+    if os.path.isfile(keymap_file):
+        log.info(
+            "touchboard-keymap configuration file found at %s loading...", keymap_file
+        )
+        with open(keymap_file, "r") as fd:
+            config["touchboard-keymap"] = json.loads(fd.read())
+
     if config is None:
         file_path = Path(file_path)
         file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -154,11 +196,14 @@ def init_config():
     return config
 
 
-class DevicesSignal(QObject):
-    it = Signal(object)
+class Signals(QObject):
+    devices_update = Signal(object)
+    state_update = Signal(object)
+    press_received = Signal(object)
 
 
 wait_pos = 0
+touchboard_displayed = False
 
 
 def setup_application(config):
@@ -168,11 +213,12 @@ def setup_application(config):
         app.quit()
         log.info("shutting down device connection")
         stop = True
+        protocol.disable_reporting(device)
         protocol.close(device)
         log.info("app should quit now")
 
     def select_device(candidates):
-        devices_signal.it.emit(candidates)
+        signals.devices_update.emit(candidates)
         return 0
 
     def wait_for_device():
@@ -180,18 +226,12 @@ def setup_application(config):
         tray.setIcon(icons[wait_icon_names[wait_pos]])
         wait_pos = (wait_pos + 1) % len(wait_icon_names)
 
-    def update_state_icon(layer, caps_word):
-        layer = str(layer)
-        if caps_word != 0:
-            tray.setIcon(icons["caps_word"])
-        elif layer in icons:
-            tray.setIcon(icons[layer])
-        else:
-            tray.setIcon(icons["not_found"])
-
-    def coords_received(col, row, action):
-        log.info(
-            "coordinates received col = %s, row = %s, action = %s", col, row, action
+    def update_state(layer, caps_word):
+        signals.state_update.emit(
+            (
+                layer,
+                caps_word,
+            )
         )
 
     def emulate_keypress(symbol):
@@ -215,19 +255,31 @@ def setup_application(config):
         except Exception as e:
             log.error("opykitten.copy %s", e)
 
-    def press_received(symbol, col, row, action):
-        if symbol == config.get("touchboard-move"):
-            coords_received(col, row, action)
-        elif action == "press":
-            emulate_keypress(symbol)
+    def press_received(symbol, row, col, action):
+        signals.press_received.emit(
+            (
+                symbol,
+                row,
+                col,
+                action,
+            )
+        )
 
     wait_icon_names = list(
         filter(lambda i: i.startswith("wait"), config["icons"].keys())
     )
 
-    devices_signal = DevicesSignal()
+    signals = Signals()
 
     app = QApplication([])
+    app.setQuitOnLastWindowClosed(False)
+    touchboard = overlay.Window(app)
+    if config.get("touchboard-keymap") is not None:
+        touchboard.set_keymap(config["touchboard-keymap"])
+    if config.get("touchboard-matrix") is not None:
+        touchboard.set_matrix(config["touchboard-matrix"])
+    if config.get("touchboard-keymap-labels") is not None:
+        touchboard.set_keymap_labels(config["touchboard-keymap-labels"])
 
     icon_tail = "white"
     if config.get("mode", "dark").lower() == "light":
@@ -266,8 +318,6 @@ def setup_application(config):
                 [app_icon_path, config_icon_path, config_icon_path_tail],
             )
 
-    app.setQuitOnLastWindowClosed(False)
-
     menu = QMenu()
 
     # I don't expect > 5 keyboards to be connected at once
@@ -285,13 +335,19 @@ def setup_application(config):
     tray.setContextMenu(menu)
     tray.setVisible(True)
 
+    def vial_meta_update(vial_meta):
+        # FIXME last row is deleted, intentionally, because of mouse buttons and should be configured not with hardcode
+        touchboard.set_keymap(vial_meta["layouts"]["keymap"][0:-1])
+        touchboard.set_matrix(vial_meta["matrix"])
+
     pool = QThreadPool()
     pool.start(
         lambda: process_loop(
-            update_state_icon,
+            update_state,
             wait_for_device,
             select_device,
             press_received,
+            vial_meta_update if config.get("touchboard-keymap") is None else None,
         )
     )
 
@@ -315,7 +371,76 @@ def setup_application(config):
         menu.addAction(quit)
         # pp(devices)
 
-    devices_signal.it.connect(draw_devices_menu)
+    @Slot()
+    def update_icon_and_touchboard(arg):
+        global touchboard_displayed
+        layer, caps_word = arg
+        layer = str(layer)
+        if caps_word != 0:
+            tray.setIcon(icons["caps_word"])
+        elif layer in icons:
+            tray.setIcon(icons[layer])
+        else:
+            tray.setIcon(icons["not_found"])
+
+        if layer == config.get("touchboard-layer"):
+            touchboard.draw_initial()
+            touchboard.show()
+            touchboard_displayed = True
+        elif touchboard_displayed:
+            touchboard.hide()
+            touchboard_displayed = False
+
+    @Slot()
+    def handle_press(arg):
+        symbol, row, col, action = arg
+        if (
+            symbol == config.get("touchboard-move", DEFAULT_TOUCHBOARD_MOVE)
+            and action == "release"
+        ):
+            x, y = touchboard.dive(row, col)
+            mouse.position = (
+                x,
+                y,
+            )
+        elif (
+            symbol == config.get("touchboard-button-1", DEFAULT_TOUCHBOARD_LEFT)
+            and action == "press"
+        ):
+            mouse.press(Button.left)
+            touchboard.draw_initial()
+        elif (
+            symbol == config.get("touchboard-button-2", DEFAULT_TOUCHBOARD_RIGHT)
+            and action == "press"
+        ):
+            mouse.press(Button.right)
+            touchboard.draw_initial()
+        elif (
+            symbol == config.get("touchboard-button-1", DEFAULT_TOUCHBOARD_LEFT)
+            and action == "release"
+        ):
+            mouse.release(Button.left)
+            touchboard.hide()
+            touchboard_displayed = False
+            protocol.send(
+                device, [protocol.INVERT_LAYER, int(config.get("touchboard-layer"))]
+            )
+        elif (
+            symbol == config.get("touchboard-button-2", DEFAULT_TOUCHBOARD_RIGHT)
+            and action == "release"
+        ):
+            mouse.release(Button.right)
+            touchboard.hide()
+            touchboard_displayed = False
+            protocol.send(
+                device, [protocol.INVERT_LAYER, int(config.get("touchboard-layer"))]
+            )
+        elif action == "release":
+            emulate_keypress(symbol)
+
+    signals.devices_update.connect(draw_devices_menu)
+    signals.state_update.connect(update_icon_and_touchboard)
+    signals.press_received.connect(handle_press)
 
     app.exec()
 
