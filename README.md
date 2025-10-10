@@ -17,13 +17,13 @@ Videos in these reddit posts:
 
 Companion applicaton should work only with keyboards with firmware compiled with module companion_hid from here https://github.com/bskaplou/qmk_modules
 
-User might use own icons, to do so it's necessary to put them info configuration directory nearby the configuration.json file and write icon filename without an extension into configuration.json.
-
 # Current layer and caps_word indication
 
 Application is able to indicate current layer and caps_word state.
 
 It's necessary to edit configuration of app with make icons match your set of layers.
+
+User might use own icons, to do so it's necessary to put them info configuration directory nearby the configuration.json file and write icon filename without an extension into configuration.json.
 
 ### MacOSX
 
