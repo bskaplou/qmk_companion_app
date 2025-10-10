@@ -32,7 +32,7 @@ Configuration might be updated in file $HOME/.config/QmkLayoutWidget/configurati
 
 ## Windows
 
-Configuration should be in file C:/Users/<USER>/AppData/Local/QmkLayoutWidget/configuration.json
+Configuration should be in file C:/Users/\<USER\>/AppData/Local/QmkLayoutWidget/configuration.json
 
 # Current layer and caps_word indication
 
