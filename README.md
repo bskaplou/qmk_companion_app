@@ -6,70 +6,13 @@ Details in this reddit post https://www.reddit.com/r/ErgoMechKeyboards/comments/
 
 Companion applicaton should work only with keyboards with firmware compiled with module companion_hid from here https://github.com/bskaplou/qmk_modules
 
-## Crossplatform version
-
-Crossplatform version lives in directory 'crossplatform'
-
-### Development
-
-Install dependencies
-
-NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems.
-
-Python 3.10 or newer is required.
-
-```
-pip install -r requirements.txt
-```
-
-Keyboard might be checked for compatibility with protocol_tester.py
-
-Run
-
-```
-python QmkLayoutWidget.py
-```
-
-Build MacOSX app
-
-```
-python -m nuitka --macos-create-app-bundle \
-           --static-libpython=no \
-           --macos-app-icon=icons/app_icon.png \
-           --macos-app-mode=background \
-           --include-raw-dir=icons=icons \
-           --enable-plugin=pyside6 \
-           --macos-app-name=QmkLayoutWidget \
-           --output-dir=build \
-           QmkLayoutWidget.py
-
-```
-
-Assemble dmg image with MacOSX app
-
-```
-create-dmg --volname "QmkLayoutWidget Installer" \
-        --window-size 800 400 \
-        --icon "QmkLayoutWidget.app" 200 190 \
-        --app-drop-link 600 185 \
-        build/QmkLayoutWidget-Installer.dmg \
-        build/QmkLayoutWidget.app
-```
-
-
-
-### App and layer icons
-
-Icons are rendered from fonts because I'm not a designer. Icons can be created with any tool and should be put into icons directory to be used.
-To add new icons with ttf font It's necessary to edit render_icons.py script.
-
-Recreate existing icons with command
-
-```
-python render_icons.py
-```
-
 User might use own icons, to do so it's necessary to put them info configuration directory nearby the configuration.json file and write icon filename without an extension into configuration.json.
+
+# Current layer and caps_word indication
+
+Application is able to indicate current layer and caps_word state.
+
+It's necessary to edit configuration of app with make icons match your set of layers.
 
 ### MacOSX
 
@@ -77,7 +20,7 @@ Layers icons can be configured in file $HOME/Library/Preferences/QmkLayoutWidget
 
 ### Linux
 
-Crossplatform version works with Linux well at least on my Raspberry Pi for now (I have no other linux desktops around sorry :( ).
+Layers configuration might be updated in file $HOME/.config/QmkLayoutWidget/configuration.json which is created on first launch.
 
 Linux guys are pretty tech-savy usually so prebuilt package is not necessary here.
 
@@ -101,7 +44,6 @@ python QmkLayoutWidget.py
 
 Logs are pretty detailed so if something works wrong please open the issue with description and logs attached.
 
-Layers configuration might be updated in file $HOME/.config/QmkLayoutWidget/configuration.json which is created on first launch.
 
 # Unicode characters with fallback and Vial support
 
@@ -380,3 +322,68 @@ For QMK firmware it's necessary to add keymap configuration in keymap-layout-edi
       "9,3": "\u2318"
     }
 ```
+
+## Crossplatform version
+
+Crossplatform version lives in directory 'crossplatform'
+
+### Development
+
+Install dependencies
+
+NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems.
+
+Python 3.10 or newer is required.
+
+```
+pip install -r requirements.txt
+```
+
+Keyboard might be checked for compatibility with protocol_tester.py
+
+Run
+
+```
+python QmkLayoutWidget.py
+```
+
+Build MacOSX app
+
+```
+python -m nuitka --macos-create-app-bundle \
+           --static-libpython=no \
+           --macos-app-icon=icons/app_icon.png \
+           --macos-app-mode=background \
+           --include-raw-dir=icons=icons \
+           --enable-plugin=pyside6 \
+           --macos-app-name=QmkLayoutWidget \
+           --output-dir=build \
+           QmkLayoutWidget.py
+
+```
+
+Assemble dmg image with MacOSX app
+
+```
+create-dmg --volname "QmkLayoutWidget Installer" \
+        --window-size 800 400 \
+        --icon "QmkLayoutWidget.app" 200 190 \
+        --app-drop-link 600 185 \
+        build/QmkLayoutWidget-Installer.dmg \
+        build/QmkLayoutWidget.app
+```
+
+
+
+### App and layer icons
+
+Icons are rendered from fonts because I'm not a designer. Icons can be created with any tool and should be put into icons directory to be used.
+To add new icons with ttf font It's necessary to edit render_icons.py script.
+
+Recreate existing icons with command
+
+```
+python render_icons.py
+```
+
+
