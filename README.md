@@ -233,9 +233,10 @@ Example
 =================================================================
 ```
 
-If you need to use unicode characters and touchboard at one additional symbols might be passed to generator.py
+If you need to use unicode characters and touchboard at once additional symbols might be passed to generator.py
 
 ```
+❯ python ../unicode_keymap/generator.py -t 😂
 ===============  put following code into keymap.c ===============
 enum unicode_keycodes {
     FACE_WITH_TEARS_OF_JOY = COMPANION_HID_SAFE_RANGE,
