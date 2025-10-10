@@ -71,7 +71,7 @@ If you are using QMK without Vial, ignore vial.json part.
 
 NB both companion_hid and qmk_companion_app required for full functionality.
 
-It's not necessary to update OS keyboard settings, not necessary to add special unicode layout.
+It's not necessary to update OS keyboard settings, not necessary to add special unicode layout in OS keyboard settings.
 
 Vial will allow to assign unicode characters with "User" tab of tab "Keymap" after keyboard firmware update.
 
