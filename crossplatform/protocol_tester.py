@@ -19,8 +19,8 @@ for dev in devs:
     response = protocol.recv(dd)
     log.info(
         "current layer: %s, caps_word: %s, report_enabled: %s",
-        response[0],
         response[1],
         response[2],
+        response[3],
     )
     protocol.close(dd)
