@@ -41,22 +41,26 @@ device = None
 stop = False
 
 
-def load_touchboard_keymap(device):
+def load_keymaps(device):
     vial_meta = protocol.load_vial_meta(device)
     if vial_meta is None:
         return None
 
-    # layers_count = protocol.load_layers_count(device)
     keymap = vial_meta
 
-    # keys = []
-    # for row in vial_meta["layouts"]["keymap"]:
-    #    keys = keys + list(filter(lambda e: isinstance(e, str), row))
+    layers_count = protocol.load_layers_count(device)
+    keys = []
+    for row in vial_meta["layouts"]["keymap"]:
+        keys = keys + list(filter(lambda e: isinstance(e, str), row))
 
-    # layers_keymaps = protocol.load_layers_keymaps(device, layers_count, vial_meta["matrix"]["rows"], vial_meta["matrix"]["cols"], keys)
-    # pp(layers_keymaps)
-
-    return keymap
+    layers_keymaps = protocol.load_layers_keymaps(
+        device,
+        layers_count,
+        vial_meta["matrix"]["rows"],
+        vial_meta["matrix"]["cols"],
+        keys,
+    )
+    return keymap, layers_keymaps
 
 
 def process_loop(
@@ -64,7 +68,7 @@ def process_loop(
     callback_wait,
     callback_select_device,
     callback_press,
-    callback_vial_meta=None,
+    callback_keymaps=None,
 ):
     global device
     while not stop:
@@ -82,9 +86,10 @@ def process_loop(
                     protocol.close(device)
                 else:
                     current_layer, caps_word = state
-                    if callback_vial_meta is not None:
-                        vial_meta = load_touchboard_keymap(device)
-                        callback_vial_meta(vial_meta)
+                    if callback_keymaps is not None:
+                        vial_meta, layers = load_keymaps(device)
+                        callback_keymaps(vial_meta, layers)
+
                     callback_state(current_layer, caps_word)
 
                     while True:
@@ -278,10 +283,8 @@ def setup_application(config):
     touchboard = overlay.Window(app)
     if config.get("touchboard-keymap") is not None:
         touchboard.set_keymap(config["touchboard-keymap"])
-    if config.get("touchboard-matrix") is not None:
-        touchboard.set_matrix(config["touchboard-matrix"])
     if config.get("touchboard-keymap-labels") is not None:
-        touchboard.set_keymap_labels(config["touchboard-keymap-labels"])
+        touchboard.set_keymap_labels(config["touchboard-keymap-labels"], direct=True)
 
     icon_tail = "white"
     if config.get("mode", "dark").lower() == "light":
@@ -337,10 +340,20 @@ def setup_application(config):
     tray.setContextMenu(menu)
     tray.setVisible(True)
 
-    def vial_meta_update(vial_meta):
+    def keymaps_update(vial_meta, layers):
+        if vial_meta is None:
+            return
+        if "layouts" not in vial_meta or "keymap" not in vial_meta["layouts"]:
+            log.error("layouts/keymap not found in vial definition")
+            return
+
         # FIXME last row is deleted, intentionally, because of mouse buttons and should be configured not with hardcode
         touchboard.set_keymap(vial_meta["layouts"]["keymap"][0:-1])
-        touchboard.set_matrix(vial_meta["matrix"])
+
+        if layers is None or len(layers) < 1:
+            return
+
+        touchboard.set_keymap_labels(layers[0], direct=False)
 
     pool = QThreadPool()
     pool.start(
@@ -349,7 +362,7 @@ def setup_application(config):
             wait_for_device,
             select_device,
             press_received,
-            vial_meta_update if config.get("touchboard-keymap") is None else None,
+            keymaps_update if config.get("touchboard-keymap") is None else None,
         )
     )
 

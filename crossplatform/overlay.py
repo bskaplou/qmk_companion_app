@@ -1,14 +1,14 @@
-import sys
 import json
 from pprint import pp
 import math
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt, Signal, Slot, QMargins, QRect, QPoint, QSysInfo
 from PySide6.QtWidgets import QHBoxLayout, QWidget
+import keycodes
 
 
 # FIXME kle seems to be more complex, some ready and tested lib required here
-def keymap_to_buttons(keymap):
+def keymap_to_positions(keymap):
     buttons = {}
     x_margin = 0.25
     x_pos = x_margin
@@ -68,7 +68,6 @@ class Window(QWidget):
 
         self.label = QtWidgets.QLabel()
         self.keymap_labels = None
-        self.matrix = None
 
         lo = QHBoxLayout()
         lo.setContentsMargins(QMargins(0, 0, 0, 0))
@@ -76,13 +75,17 @@ class Window(QWidget):
         self.setLayout(lo)
 
     def set_keymap(self, keymap):
-        self.buttons, self.max_x, self.max_y = keymap_to_buttons(keymap)
+        self.buttons, self.max_x, self.max_y = keymap_to_positions(keymap)
 
-    def set_matrix(self, matrix):
-        self.matrix = matrix
+    def set_keymap_labels(self, labels, direct=False):
+        if direct:
+            self.keymap_labels = labels
+        else:
+            keymap_labels = {}
+            for pos, code in labels.items():
+                keymap_labels[pos] = keycodes.label_by_qmk_id(code)
 
-    def set_keymap_labels(self, labels):
-        self.keymap_labels = labels
+            self.keymap_labels = keymap_labels
 
     def draw_initial(self):
         self.step = 0
@@ -122,17 +125,6 @@ class Window(QWidget):
 
         self.button_coordinates = {}
         for pos, (x, y) in self.buttons.items():
-            row, col = list(map(int, pos.split(",")))
-
-            # FIXME awkward heiristic for split keyboards and second one is inverted
-            if (
-                self.matrix is not None
-                and self.matrix["rows"] > 6
-                and row >= self.matrix["rows"] / 2
-            ):
-                col = self.matrix["cols"] * 2 - col - 1
-                row = int(row - self.matrix["rows"] / 2)
-
             pos_x = left + shift_x + x * scale_x
             pos_y = top + shift_y + y * scale_y
             self.button_coordinates[pos] = (
@@ -148,14 +140,15 @@ class Window(QWidget):
             painter.fillPath(path, Qt.gray)
 
             if self.keymap_labels is not None and self.step < 3:
-                if len(self.keymap_labels) > row and len(self.keymap_labels[row]) > col:
+                # if len(self.keymap_labels) > row and len(self.keymap_labels[row]) > col:
+                if self.keymap_labels.get(pos) is not None:
                     painter.drawText(
                         pos_x - dot_size,
                         pos_y - dot_size,
                         dot_size * 2,
                         dot_size * 2,
                         Qt.AlignCenter,
-                        self.keymap_labels[row][col],
+                        self.keymap_labels[pos],
                     )
 
         painter.end()

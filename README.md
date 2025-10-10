@@ -299,9 +299,9 @@ It's necessaty to add key with number of layer which is used for navigation with
 
 ```
 
-If keyboard uses Vial firmware app will load keymap directly from keyboard.
+If keyboard uses Vial firmware app will load keymap directly from keyboard and build keymap labels.
 
-For QMK firmware it's necessary to add to add keymap configuration in keymap-layout-editor format as in example below.
+For QMK firmware it's necessary to add keymap configuration in keymap-layout-editor format as in example below.
 
 ```
     "touchboard-keymap": [
@@ -322,4 +322,60 @@ For QMK firmware it's necessary to add to add keymap configuration in keymap-lay
         {"x": 1.25}, "8,5", {"y": -0.25}, "8,4", {"y": -0.25}, "8,3", "8,2", {"y": 0.25}, "8,1", "8,0"
       ]
     ],
+    "touchboard-keymap-labels": {
+      "0,0": "\u238b",
+      "0,1": "1",
+      "0,2": "2",
+      "0,3": "3",
+      "0,4": "4",
+      "0,5": "5",
+      "5,5": "6",
+      "5,4": "7",
+      "5,3": "8",
+      "5,2": "9",
+      "5,1": "0",
+      "5,0": "-",
+      "1,0": "\u21e5",
+      "1,1": "Q",
+      "1,2": "W",
+      "1,3": "E",
+      "1,4": "R",
+      "1,5": "T",
+      "6,5": "Y",
+      "6,4": "U",
+      "6,3": "I",
+      "6,2": "O",
+      "6,1": "P",
+      "6,0": "=",
+      "2,0": "Fn",
+      "2,1": "A",
+      "2,2": "S",
+      "2,3": "D",
+      "2,4": "F",
+      "2,5": "G",
+      "7,5": "H",
+      "7,4": "J",
+      "7,3": "K",
+      "7,2": "L",
+      "7,1": ";",
+      "7,0": "'",
+      "3,0": "\u21e7",
+      "3,1": "Z",
+      "3,2": "X",
+      "3,3": "C",
+      "3,4": "V",
+      "3,5": "B",
+      "8,5": "N",
+      "8,4": "M",
+      "8,3": ",",
+      "8,2": ".",
+      "8,1": "/",
+      "8,0": "\u21e7",
+      "4,3": "\u2303",
+      "4,4": "\u2325",
+      "4,5": "\u2318",
+      "9,5": "\u2423",
+      "9,4": "\u23ce",
+      "9,3": "\u2318"
+    }
 ```

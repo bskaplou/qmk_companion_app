@@ -221,6 +221,9 @@ def load_layers_keymaps(device, layers, rows, cols, keys):
             device, struct.pack(">BHB", CMD_VIA_KEYMAP_GET_BUFFER, offset, sz), raw=True
         )
         data = recv(device, timeout=100, raw=True)
+        if data is None:
+            log.error("failed to load layers/keymaps")
+            return None
         keymap += data[4 : 4 + sz]
 
     log.info("successfully loaded layers/keymaps")
