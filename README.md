@@ -32,6 +32,12 @@ Configuration might be updated in file $HOME/.config/QmkLayoutWidget/configurati
 
 # Current layer and caps_word indication
 
+## Rationale
+
+Work on <65% keyboard requires to setup layers to access all common keyboard buttons. In some setups layers are able to be locked for a period of time. It's usable to know which keyboard layer is active at the moment
+
+## How it works
+
 On startup application connects to keyboard and subscribes to layer-change events, as soon as application receives an event from keyboard it updates icon in system tray.
 
 It's necessary to edit configuration of application to make icons match your set of layers if default icons doesn't match your setup.
@@ -41,7 +47,7 @@ User might use own icons, to do so it's necessary to put them info configuration
 
 # Unicode characters with fallback and Vial support
 
-Desktop component allows a wide range of new features and unicode character is just a simple example.
+## Rationale
 
 Qmk already has unicode support which is pretty complex to setup and system dependent.
 https://docs.qmk.fm/features/unicode
@@ -130,6 +136,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 # Pointer operation with keyboard
 
+## Rationale
+
+It takes a lot of time to move hand from keyboard to mouse and back, especially in keyboard heavy workflows like text editing. Ability to perform pointer operation allows to keep hands on keyboad and do pointer operations straight from keyboard.
+
+## How it works
+
 This feature is called "touchboard" all around the code. 
 Touchboard allows to draw keyboard overlay on screen on qmk layer activation and move pointer with keyboard buttons. After each button push pointer will be moved into the center of button being pushed and redraw overlay with smaller version of keyboard around the current pointer position. 2-4 button touches are enough to place pointer into necessary position.
 
@@ -144,7 +156,6 @@ Drag and drop:
 Same as with traditional mouse.
 
 Control/Commmand and Shift buttons will operate in combination with pointer moves/click as with traditional mouse too.
-
 
 ## How to prepare firmware
 It's necessary put following string into the file keyboards/<your_keyboard>/keymaps/<your_keymap>/config.h
