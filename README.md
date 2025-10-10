@@ -1,6 +1,17 @@
 # QMK companion app
 
-Details in this reddit post https://www.reddit.com/r/ErgoMechKeyboards/comments/1nofeb6/current_layer_tray_indicator_for_qmkvial_keyboards/
+App extends keyboard functionality with following features:
+
+- Current layer/caps_word indication
+- Ability to assign unicode symbols to buttons
+- Ability to use keyboard instead of mouse/touchpad/trackball
+
+
+Videos in these reddit posts:
+
+- https://www.reddit.com/r/ErgoMechKeyboards/comments/1nofeb6/current_layer_tray_indicator_for_qmkvial_keyboards/
+- https://www.reddit.com/r/ErgoMechKeyboards/comments/1nvbqnr/smiles_layer_with_qmkvial_companion_app_a_bit/
+- https://www.reddit.com/r/ErgoMechKeyboards/comments/1o0dic7/use_your_keyboard_as_pointer_device_in_a_slightly/
 
 ## Firmware dependency
 
