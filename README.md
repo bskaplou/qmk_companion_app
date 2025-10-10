@@ -38,33 +38,11 @@ If you use prebuilt version put own icons into configuration directory next to c
 
 ### MacOSX
 
-Layers icons can be configured in file $HOME/Library/Preferences/QmkLayoutWidget/configuration.json after first launch.
+Layers icons can be configured in file $HOME/Library/Preferences/QmkLayoutWidget/configuration.json after the first launch.
 
 ### Linux
 
 Layers configuration might be updated in file $HOME/.config/QmkLayoutWidget/configuration.json which is created on first launch.
-
-Linux guys are pretty tech-savy usually so prebuilt package is not necessary here.
-
-Python 3.11.9 is required because PySide6 is not ready for 3.12 at the moment :( It might by installed with pyenv for example.
-
-NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems
-
-Install dependencies
-
-```
-pip install -r requirements.txt
-```
-
-It's necessary to set suitable permissions on /dev/hidraw? device possibly with udev as described here https://get.vial.today/manual/linux-udev.html
-
-Run
-
-```
-python QmkLayoutWidget.py
-```
-
-Logs are pretty detailed so if something works wrong please open the issue with description and logs attached.
 
 
 # Unicode characters with fallback and Vial support
@@ -376,11 +354,29 @@ pip install -r requirements.txt
 
 Keyboard might be checked for compatibility with protocol_tester.py
 
+Python 3.11.9 is required on Linux because PySide6 is not ready for 3.12 at the moment :( It might by installed with pyenv for example.
+
+On other platforms any python > 3.10 should work.
+
+NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems
+
+Install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+On linux it's necessary to set suitable permissions on /dev/hidraw? device possibly with udev as described here https://get.vial.today/manual/linux-udev.html
+
+
 Run
 
 ```
 python QmkLayoutWidget.py
 ```
+
+Logs are pretty detailed so if something works wrong please open the issue with description and logs attached.
+
 
 Build MacOSX app
 
