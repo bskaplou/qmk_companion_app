@@ -20,6 +20,16 @@ Reddit posts:
 
 Companion applicaton should work only with keyboards with firmware compiled with module companion_hid from here https://github.com/bskaplou/qmk_modules
 
+## MacOSX
+
+Configuration might be updated in file $HOME/Library/Preferences/QmkLayoutWidget/configuration.json after the first launch.
+
+## Linux
+
+On linux it's necessary to set suitable permissions on /dev/hidraw device possibly with udev as described here https://get.vial.today/manual/linux-udev.html
+
+Configuration might be updated in file $HOME/.config/QmkLayoutWidget/configuration.json which is created on first launch.
+
 # Current layer and caps_word indication
 
 On startup application connects to keyboard and subscribes to layer-change events, as soon as application receives an event from keyboard it updates icon in system tray.
@@ -27,15 +37,6 @@ On startup application connects to keyboard and subscribes to layer-change event
 It's necessary to edit configuration of application to make icons match your set of layers if default icons doesn't match your setup.
 
 User might use own icons, to do so it's necessary to put them info configuration directory nearby the configuration.json file and write icon filename without an extension into configuration.json.
-
-
-### MacOSX
-
-Layers icons can be configured in file $HOME/Library/Preferences/QmkLayoutWidget/configuration.json after the first launch.
-
-### Linux
-
-Layers configuration might be updated in file $HOME/.config/QmkLayoutWidget/configuration.json which is created on first launch.
 
 
 # Unicode characters with fallback and Vial support
@@ -343,21 +344,20 @@ Python 3.10 or newer is required.
 pip install -r requirements.txt
 ```
 
-Keyboard might be checked for compatibility with protocol_tester.py
-
-Python 3.11.9 is required on Linux because PySide6 is not ready for 3.12 at the moment :( It might by installed with pyenv for example.
-
-On other platforms any python > 3.10 should work.
-
-NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems
-
-Install dependencies
+Keyboard might be checked for compatibility with protocol_tester.py. Success should look as follows
 
 ```
-pip install -r requirements.txt
+❯ python protocol_tester.py
+INFO:__main__:Testing device:
+{'manufacturer_string': 'Squalius-cephalus',
+ 'path': b'DevSrvsID:4337298145',
+ 'product_id': 4626,
+ 'product_string': 'silakka54',
+ 'vendor_id': 65261}
+INFO:protocol:successfully opened device 65261, 4626, b'DevSrvsID:4337298145'
+INFO:__main__:current layer: 0, caps_word: 0, report_enabled: 0
+INFO:protocol:closing device <hid.Device object at 0x104ee72f0>
 ```
-
-On linux it's necessary to set suitable permissions on /dev/hidraw? device possibly with udev as described here https://get.vial.today/manual/linux-udev.html
 
 
 Run
@@ -396,14 +396,12 @@ create-dmg --volname "QmkLayoutWidget Installer" \
 ```
 
 
-
-
-Icons are rendered from fonts because I'm not a designer.
-
 Recreate existing icons with command
 
 ```
 python render_icons.py
 ```
+
+Icons are rendered from fonts, so it's necessaty to download necessary font and place it next to script. New icons can be created by render_icons.py script (source update might be necessary, script is small and simple)
 
 
