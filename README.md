@@ -345,15 +345,16 @@ For QMK firmware it's necessary to add keymap configuration in keymap-layout-edi
 
 Sources of application are in 'crossplatform' directory.
 
-Install dependencies
-
-NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems.
-
-Python 3.10 or newer is required.
+Install dependencies as follows
 
 ```
 pip install -r requirements.txt
 ```
+
+NB please don't try to install dependencies through pacman/apt or other package manager, use pip. Use pyenv in case of pip problems.
+
+
+Python 3.10 or newer is required.
 
 Keyboard might be checked for compatibility with protocol_tester.py. Success should look as follows
 
@@ -371,7 +372,7 @@ INFO:protocol:closing device <hid.Device object at 0x104ee72f0>
 ```
 
 
-Run
+Run application with command
 
 ```
 python QmkLayoutWidget.py
@@ -380,7 +381,7 @@ python QmkLayoutWidget.py
 Logs are pretty detailed so if something works wrong please open the issue with description and logs attached.
 
 
-Build MacOSX app
+## Build MacOSX app
 
 ```
 python -m nuitka --macos-create-app-bundle \
@@ -395,7 +396,7 @@ python -m nuitka --macos-create-app-bundle \
 
 ```
 
-Assemble dmg image with MacOSX app
+### Assemble dmg image with MacOSX app
 
 ```
 create-dmg --volname "QmkLayoutWidget Installer" \
@@ -407,7 +408,9 @@ create-dmg --volname "QmkLayoutWidget Installer" \
 ```
 
 
-Recreate existing icons with command
+### Icons
+
+Existing icons can be recreated and new icons can be rendered from ttf font with command
 
 ```
 python render_icons.py
