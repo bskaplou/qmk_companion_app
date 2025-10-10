@@ -7,10 +7,11 @@ App extends keyboard functionality with following features:
 - Ability to use keyboard instead of mouse/touchpad/trackball
 
 
-Videos and discussion on reddit:
+Demo:
 
 https://github.com/user-attachments/assets/5bb56617-2c2c-4787-8cea-b9b72b52784c
 
+Reddit posts:
 - https://www.reddit.com/r/ErgoMechKeyboards/comments/1nofeb6/current_layer_tray_indicator_for_qmkvial_keyboards/
 - https://www.reddit.com/r/ErgoMechKeyboards/comments/1nvbqnr/smiles_layer_with_qmkvial_companion_app_a_bit/
 - https://www.reddit.com/r/ErgoMechKeyboards/comments/1o0dic7/use_your_keyboard_as_pointer_device_in_a_slightly/
@@ -21,19 +22,11 @@ Companion applicaton should work only with keyboards with firmware compiled with
 
 # Current layer and caps_word indication
 
-Application is able to indicate current layer and caps_word state.
+On startup application connects to keyboard and subscribes to layer-change events, as soon as application receives an event from keyboard it updates icon in system tray.
 
-It's necessary to edit configuration of app with make icons match your set of layers.
+It's necessary to edit configuration of application to make icons match your set of layers if default icons doesn't match your setup.
 
 User might use own icons, to do so it's necessary to put them info configuration directory nearby the configuration.json file and write icon filename without an extension into configuration.json.
-
-
-### Layers and caps_word icons
-
-Icons can be created with any tool and should be put into icons directory to be used.
-To add new icons with ttf font It's necessary to edit render_icons.py script.
-
-If you use prebuilt version put own icons into configuration directory next to configuration.json file.
 
 
 ### MacOSX
@@ -336,11 +329,9 @@ For QMK firmware it's necessary to add keymap configuration in keymap-layout-edi
     }
 ```
 
-## Crossplatform version
+# Development
 
-Crossplatform version lives in directory 'crossplatform'
-
-### Development
+Sources of application are in 'crossplatform' directory.
 
 Install dependencies
 
