@@ -25,6 +25,15 @@ It's necessary to edit configuration of app with make icons match your set of la
 
 User might use own icons, to do so it's necessary to put them info configuration directory nearby the configuration.json file and write icon filename without an extension into configuration.json.
 
+
+### Layers and caps_word icons
+
+Icons can be created with any tool and should be put into icons directory to be used.
+To add new icons with ttf font It's necessary to edit render_icons.py script.
+
+If you use prebuilt version put own icons into configuration directory next to configuration.json file.
+
+
 ### MacOSX
 
 Layers icons can be configured in file $HOME/Library/Preferences/QmkLayoutWidget/configuration.json after first launch.
@@ -386,10 +395,8 @@ create-dmg --volname "QmkLayoutWidget Installer" \
 
 
 
-### App and layer icons
 
-Icons are rendered from fonts because I'm not a designer. Icons can be created with any tool and should be put into icons directory to be used.
-To add new icons with ttf font It's necessary to edit render_icons.py script.
+Icons are rendered from fonts because I'm not a designer.
 
 Recreate existing icons with command
 
