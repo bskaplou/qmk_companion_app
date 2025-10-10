@@ -207,6 +207,7 @@ class Signals(QObject):
 def setup_application(config):
     wait_pos = 0
     touchboard_displayed = False
+    multiclick_waiting = False
 
     def shutdown():
         global stop
@@ -385,31 +386,35 @@ def setup_application(config):
             tray.setIcon(icons["not_found"])
 
         if layer == config.get("touchboard-layer"):
-            touchboard.draw_initial()
-            touchboard.show()
-            touchboard_displayed = True
+            if not multiclick_waiting and not touchboard_displayed:
+                # macosx specific benavior of pynput multiclicks, it's a hack sorry
+                mouse._click = 0
+                touchboard.draw_initial()
+                touchboard.show()
+                touchboard_displayed = True
         elif touchboard_displayed:
             touchboard.hide()
             touchboard_displayed = False
 
-    doubleclick_waiting = False
-    doubleclick_timer = QTimer()
-
     @Slot()
-    def doubleclick_timeout():
-        nonlocal doubleclick_waiting
-        doubleclick_waiting = False
-        protocol.send(
-            device, [protocol.INVERT_LAYER, int(config.get("touchboard-layer"))]
-        )
+    def multiclick_timeout():
+        nonlocal multiclick_waiting
+        if multiclick_waiting == True:
+            protocol.send(
+                device, [protocol.INVERT_LAYER, int(config.get("touchboard-layer"))]
+            )
+            multiclick_waiting = False
+            # macosx specific benavior of pynput multiclicks, it's a hack sorry
+            mouse._click = None
 
-    doubleclick_timer.setInterval(300)
-    doubleclick_timer.timeout.connect(doubleclick_timeout)
-    doubleclick_timer.setSingleShot(True)
+    multiclick_timer = QTimer()
+    multiclick_timer.setInterval(500)
+    multiclick_timer.timeout.connect(multiclick_timeout)
+    multiclick_timer.setSingleShot(True)
 
     @Slot()
     def handle_press(arg):
-        nonlocal touchboard_displayed, doubleclick_waiting, doubleclick_timer
+        nonlocal touchboard_displayed, multiclick_waiting, multiclick_timer
         symbol, row, col, action = arg
         if (
             symbol == config.get("touchboard-move", DEFAULT_TOUCHBOARD_MOVE)
@@ -422,35 +427,35 @@ def setup_application(config):
             and action == "press"
         ):
             mouse.press(Button.left)
-            if not doubleclick_waiting:
+            if not multiclick_waiting:
                 touchboard.draw_initial()
         elif (
             symbol == config.get("touchboard-button-2", DEFAULT_TOUCHBOARD_RIGHT)
             and action == "press"
         ):
             mouse.press(Button.right)
-            if not doubleclick_waiting:
+            if not multiclick_waiting:
                 touchboard.draw_initial()
         elif (
             symbol == config.get("touchboard-button-1", DEFAULT_TOUCHBOARD_LEFT)
             and action == "release"
         ):
             mouse.release(Button.left)
-            touchboard.hide()
-            if not doubleclick_waiting:
+            if not multiclick_waiting and touchboard_displayed:
+                touchboard.hide()
                 touchboard_displayed = False
-                doubleclick_waiting = True
-                doubleclick_timer.start()
+                multiclick_waiting = True
+                multiclick_timer.start()
         elif (
             symbol == config.get("touchboard-button-2", DEFAULT_TOUCHBOARD_RIGHT)
             and action == "release"
         ):
             mouse.release(Button.right)
-            touchboard.hide()
-            if not doubleclick_waiting:
+            if not multiclick_waiting and touchboard_displayed:
+                touchboard.hide()
                 touchboard_displayed = False
-                doubleclick_waiting = True
-                doubleclick_timer.start()
+                multiclick_waiting = True
+                multiclick_timer.start()
         elif action == "release":
             emulate_keypress(symbol)
 
