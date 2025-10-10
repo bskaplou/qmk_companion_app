@@ -158,7 +158,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 # Pointer operation with keyboard
 
-This feature is called "touchboard" all around the code.
+This feature is called "touchboard" all around the code. 
+Touchboard allows to draw keyboard overlay on screen on qmk layer activation and move pointer with keyboard buttons. After each button push pointer will be moved into the center of button being pushed and redraw overlay with smaller version of keyboard around the current pointer position. 2-4 button touches are enough to place pointer into necessary position.
+
+Drag and drop:
+
+- Activate pointer layout
+- Move pointer to start location
+- Push and hold button 1/2
+- Move pointer to end position
+- Release button 1/2
+
+Same as with traditional mouse.
+
+Control/Commmand and Shift buttons will operate in combination with pointer moves/click as with traditional mouse too.
 
 
 ## How to prepare firmware
