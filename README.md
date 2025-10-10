@@ -7,7 +7,9 @@ App extends keyboard functionality with following features:
 - Ability to use keyboard instead of mouse/touchpad/trackball
 
 
-Videos in these reddit posts:
+Videos and discussion on reddit:
+
+https://github.com/user-attachments/assets/5bb56617-2c2c-4787-8cea-b9b72b52784c
 
 - https://www.reddit.com/r/ErgoMechKeyboards/comments/1nofeb6/current_layer_tray_indicator_for_qmkvial_keyboards/
 - https://www.reddit.com/r/ErgoMechKeyboards/comments/1nvbqnr/smiles_layer_with_qmkvial_companion_app_a_bit/
