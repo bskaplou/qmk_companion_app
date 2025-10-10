@@ -149,9 +149,9 @@ Drag and drop:
 
 - Activate pointer layout
 - Move pointer to start location
-- Push and hold button 1/2
+- Push and hold button 1 or 2
 - Move pointer to end position
-- Release button 1/2
+- Release button 1 or 2
 
 Same as with traditional mouse.
 
