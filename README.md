@@ -30,6 +30,10 @@ On linux it's necessary to set suitable permissions on /dev/hidraw device possib
 
 Configuration might be updated in file $HOME/.config/QmkLayoutWidget/configuration.json which is created on first launch.
 
+## Windows
+
+Configuration should be in file C:/Users/<USER>/AppData/Local/QmkLayoutWidget/configuration.json
+
 # Current layer and caps_word indication
 
 ## Rationale
