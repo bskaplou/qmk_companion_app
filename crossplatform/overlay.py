@@ -78,15 +78,8 @@ class Window(QWidget):
     def set_keymap(self, keymap):
         self.buttons, self.max_x, self.max_y = keymap_to_positions(keymap)
 
-    def set_keymap_labels(self, labels, direct=False):
-        if direct:
-            self.keymap_labels = labels
-        else:
-            keymap_labels = {}
-            for pos, code in labels.items():
-                keymap_labels[pos] = keycodes.label_by_qmk_id(code)
-
-            self.keymap_labels = keymap_labels
+    def set_keymap_labels(self, labels):
+        self.keymap_labels = labels
 
     def draw_initial(self):
         self.step = 0

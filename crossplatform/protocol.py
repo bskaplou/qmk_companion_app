@@ -30,11 +30,14 @@ SET_REPORT_PRESS = 0x04
 # raw hid specific
 MESSAGE_LENGTH = 32
 
+CMD_VIA_GET_PROTOCOL_VERSION = 0x01
 CMD_VIA_VIAL_PREFIX = 0xFE
+CMD_VIAL_GET_KEYBOARD_ID = 0x00
 CMD_VIAL_GET_SIZE = 0x01
 CMD_VIAL_GET_DEFINITION = 0x02
 CMD_VIA_GET_LAYER_COUNT = 0x11
 CMD_VIA_KEYMAP_GET_BUFFER = 0x12
+VIA_UNHANDLED = 0xFF
 
 
 def open(product_id, vendor_id, path):
@@ -240,3 +243,31 @@ def load_layers_keymaps(device, layers, rows, cols, keys):
         layers_keymaps.append(keydict)
 
     return layers_keymaps
+
+
+def discover_capabilities(device):
+    info = {}
+    send(device, [CMD_VIA_GET_PROTOCOL_VERSION], raw=True)
+    response = recv(device, timeout=200, raw=True)
+    if response is None:
+        info["via"] = None
+    else:
+        info["via"] = response[0]
+
+    send(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_KEYBOARD_ID], raw=True)
+    response = recv(device, timeout=200, raw=True)
+    if response is None or response[0] == VIA_UNHANDLED:
+        info["vial"] = None
+    else:
+        info["vial"] = (
+            (response[3] << 24) + (response[2] << 16) + (response[1] << 8) + response[0]
+        )
+
+    send(device, [GET_VERSION])
+    response = recv(device, timeout=200)
+    if response is None or response[0] != HID_LAYERS_OUT_VERSION:
+        info["companion_hid"] = None
+    else:
+        info["companion_hid"] = response[1]
+
+    return info

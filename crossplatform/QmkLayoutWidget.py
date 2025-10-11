@@ -25,6 +25,8 @@ import logging
 
 import protocol
 import overlay
+import keycodes
+
 from pprint import pp
 
 from pynput.keyboard import Key, Controller
@@ -41,12 +43,13 @@ device = None
 stop = False
 
 
-def load_keymaps(device):
-    vial_meta = protocol.load_vial_meta(device)
-    if vial_meta is None:
-        return None
-
-    keymap = vial_meta
+def load_keymaps(device, meta=None):
+    if meta is None:
+        vial_meta = protocol.load_vial_meta(device)
+        if vial_meta is None:
+            return None, None
+    else:
+        vial_meta = None
 
     layers_count = protocol.load_layers_count(device)
     keys = []
@@ -60,7 +63,7 @@ def load_keymaps(device):
         vial_meta["matrix"]["cols"],
         keys,
     )
-    return keymap, layers_keymaps
+    return vial_meta, layers_keymaps
 
 
 def process_loop(
@@ -118,7 +121,7 @@ def process_loop(
 
 APPLICATION_NAME = "QmkLayoutWidget"
 CONFIG_FILE = "configuration.json"
-TOUCHBOARD_KEYMAP_FILE = "touchboard-keymap.json"
+TOUCHBOARD_META_FILE = "touchboard-meta.json"
 
 DEFAULT_TOUCHBOARD_MOVE = "🐁"
 DEFAULT_TOUCHBOARD_LEFT = "←"
@@ -173,15 +176,13 @@ def init_config():
             'configuration file "%s" not found, I\'ll try to create it', e.filename
         )
 
-    keymap_file = os.path.join(
-        config_locations[0], APPLICATION_NAME, TOUCHBOARD_KEYMAP_FILE
+    meta_file = os.path.join(
+        config_locations[0], APPLICATION_NAME, TOUCHBOARD_META_FILE
     )
-    if os.path.isfile(keymap_file):
-        log.info(
-            "touchboard-keymap configuration file found at %s loading...", keymap_file
-        )
-        with open(keymap_file, "r") as fd:
-            config["touchboard-keymap"] = json.loads(fd.read())
+    if os.path.isfile(meta_file):
+        log.info("touchboard-meta configuration file found at %s loading...", meta_file)
+        with open(meta_file, "r") as fd:
+            config["touchboard-meta"] = json.loads(fd.read())
 
     if config is None:
         file_path = Path(file_path)
@@ -281,10 +282,14 @@ def setup_application(config):
     app = QApplication([])
     app.setQuitOnLastWindowClosed(False)
     touchboard = overlay.Window(app)
-    if config.get("touchboard-keymap") is not None:
-        touchboard.set_keymap(config["touchboard-keymap"])
+    if (
+        config.get("touchboard-meta") is not None
+        and config["touchboard-meta"].get("layouts") is not None
+        and config["touchboard-meta"]["layouts"].get("keymap") != None
+    ):
+        touchboard.set_keymap(config["touchboard-meta"]["layouts"]["keymap"][0:-1])
     if config.get("touchboard-keymap-labels") is not None:
-        touchboard.set_keymap_labels(config["touchboard-keymap-labels"], direct=True)
+        touchboard.set_keymap_labels(config["touchboard-keymap-labels"])
 
     icon_tail = "white"
     if config.get("mode", "dark").lower() == "light":
@@ -353,7 +358,11 @@ def setup_application(config):
         if layers is None or len(layers) < 1:
             return
 
-        touchboard.set_keymap_labels(layers[0], direct=False)
+        keymap_labels = {}
+        for pos, code in layers[0].items():
+            keymap_labels[pos] = keycodes.label_by_qmk_id(code)
+
+        touchboard.set_keymap_labels(keymap_labels)
 
     pool = QThreadPool()
     pool.start(
@@ -362,7 +371,7 @@ def setup_application(config):
             wait_for_device,
             select_device,
             press_received,
-            keymaps_update if config.get("touchboard-keymap") is None else None,
+            keymaps_update if config.get("touchboard-meta") is None else None,
         )
     )
 
