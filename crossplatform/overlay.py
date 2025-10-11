@@ -39,6 +39,7 @@ def keymap_to_positions(keymap):
                 buttons[data] = (
                     x,
                     y,
+                    width,
                 )
 
                 x_pos = x_pos + x_mod + width
@@ -124,7 +125,7 @@ class Window(QWidget):
             painter.setFont(font)
 
         self.button_coordinates = {}
-        for pos, (x, y) in self.buttons.items():
+        for pos, (x, y, w) in self.buttons.items():
             pos_x = left + shift_x + x * scale_x
             pos_y = top + shift_y + y * scale_y
             self.button_coordinates[pos] = (
@@ -132,8 +133,8 @@ class Window(QWidget):
                 pos_y,
             )
             point = QRect(
-                QPoint(pos_x - dot_size, pos_y - dot_size),
-                QPoint(pos_x + dot_size, pos_y + dot_size),
+                QPoint(pos_x - dot_size * w, pos_y - dot_size),
+                QPoint(pos_x + dot_size * w, pos_y + dot_size),
             )
             path = QtGui.QPainterPath()
             path.addRoundedRect(point, rounding, rounding)
