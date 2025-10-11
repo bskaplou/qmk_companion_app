@@ -30,7 +30,7 @@ def keymap_to_positions(keymap):
                 if "h" in data:
                     height = height + data["h"]
                 if "w" in data:
-                    width = width + data["width"]
+                    width = data["w"]
             else:
                 x = x_pos + x_mod + width / 2
                 y = y_pos + y_mod + height / 2
@@ -115,7 +115,7 @@ class Window(QWidget):
         scale_y = height / (self.max_y + 0.3)
         shift_x = -scale_x / 8
         shift_y = -scale_y / 4
-        dot_size = 0.23 * scale_y
+        dot_size = 0.45 * scale_x
         rounding = dot_size * 0.4
 
         if self.step < 3:
