@@ -266,27 +266,17 @@ It's necessaty to add key with number of layer which is used for navigation with
 
 If keyboard uses Vial firmware app will load keymap directly from keyboard and build keymap labels.
 
-For QMK firmware it's necessary to add keymap configuration in keymap-layout-editor format as in example below.
+Otherwise it's necessary to copy via.json or vial.json into configuration directory with name touchboard-meta.json.
+Such files could be obtained in:
+
+- Via repository https://github.com/the-via/keyboards/
+- Vial repository https://github.com/vial-kb/vial-qmk/tree/vial/keyboards/
+
+If keyboard supports Via button labels will be loaded from keyboard
+
+For firmware with no Via support it's necessary to add touchboard-keymap-labels into configuration in format as in example below.
 
 ```
-    "touchboard-keymap": [
-      [
-        {"y": 0.25}, "0,0", "0,1", {"y": -0.25}, "0,2", "0,3", {"y": 0.25}, "0,4", {"y": 0.25}, "0,5",
-        {"x": 1.25}, "5,5", {"y": -0.25}, "5,4", {"y": -0.25}, "5,3", "5,2", {"y": 0.25}, "5,1", "5,0"
-      ],
-      [
-        "1,0", "1,1", {"y": -0.25}, "1,2", "1,3", {"y": 0.25}, "1,4", {"y": 0.25}, "1,5", {"x": 1.25},
-        "6,5", {"y": -0.25}, "6,4", {"y": -0.25}, "6,3", "6,2", {"y": 0.25}, "6,1", "6,0"
-      ],
-      [
-        "2,0", "2,1", {"y": -0.25}, "2,2", "2,3", {"y": 0.25}, "2,4", {"y": 0.25}, "2,5",
-        {"x": 1.25}, "7,5", {"y": -0.25}, "7,4", {"y": -0.25}, "7,3", "7,2", {"y": 0.25}, "7,1", "7,0"
-      ],
-      [
-        "3,0","3,1", {"y": -0.25}, "3,2", "3,3", {"y": 0.25}, "3,4", {"y": 0.25}, "3,5",
-        {"x": 1.25}, "8,5", {"y": -0.25}, "8,4", {"y": -0.25}, "8,3", "8,2", {"y": 0.25}, "8,1", "8,0"
-      ]
-    ],
     "touchboard-keymap-labels": {
       "0,0": "\u238b",
       "0,1": "1",
