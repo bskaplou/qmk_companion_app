@@ -20,6 +20,8 @@ Reddit posts:
 
 Companion applicaton should work only with keyboards with firmware compiled with module companion_hid from here https://github.com/bskaplou/qmk_modules
 
+QMK/Vial firmware compilation skill required to make it work.
+
 ## MacOSX
 
 Configuration might be updated in file $HOME/Library/Preferences/QmkLayoutWidget/configuration.json after the first launch.
@@ -62,8 +64,6 @@ https://getreuer.info/posts/keyboards/non-english/index.html#unicode-input
 Current implementation expected to be less hacky.
 
 ## How it works and how to run it with QMK/Vial
-
-QMK/Vial firmware compilation skill required to make it work.
 
 Unicode characters are embedded into firmware.
 They are embedded into two places:
@@ -257,7 +257,9 @@ For now TB_MOVE should be assigned to all buttons except last row. TB_1 and TB_2
 
 ## Companion app configuration
 
-It's necessaty to add key with number of layer which is used for navigation with touchboard as follows.
+Layer with touchboard buttons will be detected automatically for keyboards with Via/Vial firmware.
+
+For raw QMK firmware it's necessaty to add key with number of layer which is used for navigation with touchboard as follows.
 
 ```
     "touchboard-layer": "5",
@@ -356,13 +358,14 @@ Keyboard might be checked for compatibility with protocol_tester.py. Success sho
 ❯ python protocol_tester.py
 INFO:__main__:Testing device:
 {'manufacturer_string': 'Squalius-cephalus',
- 'path': b'DevSrvsID:4337298145',
+ 'path': b'DevSrvsID:4347767388',
  'product_id': 4626,
  'product_string': 'silakka54',
  'vendor_id': 65261}
-INFO:protocol:successfully opened device 65261, 4626, b'DevSrvsID:4337298145'
+INFO:protocol:successfully opened device 65261, 4626, b'DevSrvsID:4347767388'
+INFO:__main__:capabilities discovered {'via': 1, 'vial': 6, 'companion_hid': 1}
 INFO:__main__:current layer: 0, caps_word: 0, report_enabled: 0
-INFO:protocol:closing device <hid.Device object at 0x104ee72f0>
+INFO:protocol:closing device <hid.Device object at 0x100919400>
 ```
 
 
