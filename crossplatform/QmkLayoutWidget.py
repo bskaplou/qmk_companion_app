@@ -128,13 +128,14 @@ APPLICATION_NAME = "QmkLayoutWidget"
 CONFIG_FILE = "configuration.json"
 TOUCHBOARD_META_FILE = "touchboard-meta.json"
 
+TOUCHBOARD_MOVE_KEYCODE = 0x7E00
+
 DEFAULT_TOUCHBOARD_MOVE = "🐁"
 DEFAULT_TOUCHBOARD_LEFT = "←"
 DEFAULT_TOUCHBOARD_RIGHT = "→"
 
 DEFAULT_CONFIG = {
     "mode": "dark" if QSysInfo.kernelType() == "darwin" else "light",
-    "touchboard-layer": "<type_your_touchboard_layer_here>",
     "icons": {
         "0": "default",
         "1": "navigation",
@@ -219,6 +220,7 @@ def setup_application(config):
     wait_pos = 0
     touchboard_displayed = False
     multiclick_waiting = False
+    touchboard_layer = int(config.get("touchboard-layer", -1))
 
     def shutdown():
         global stop
@@ -343,16 +345,26 @@ def setup_application(config):
     tray.setVisible(True)
 
     def keymaps_update(vial_meta, layers):
+        nonlocal touchboard_layer
+        move_buttons_positions = None
+        if layers is not None:
+            for layer, keys in enumerate(layers):
+                mmove = list(map(lambda i: i[0], filter(lambda i: i[1] == TOUCHBOARD_MOVE_KEYCODE, keys.items())))
+                if len(mmove) > 0 and touchboard_layer == -1:
+                    touchboard_layer = layer
+                    log.info("detected touchboard-layer is %s", layer)
+                    move_buttons_positions = mmove
+
         if (
             config.get("touchboard-meta") is not None
             and config["touchboard-meta"].get("layouts") is not None
             and config["touchboard-meta"]["layouts"].get("keymap") != None
         ):
             log.info("keymap loaded from config")
-            touchboard.set_keymap(config["touchboard-meta"]["layouts"]["keymap"][0:-1])
+            touchboard.set_keymap(config["touchboard-meta"]["layouts"]["keymap"], move_buttons_positions)
         elif vial_meta is not None:
             log.info("keymap loaded from vial")
-            touchboard.set_keymap(vial_meta["layouts"]["keymap"][0:-1])
+            touchboard.set_keymap(vial_meta["layouts"]["keymap"], move_buttons_positions)
         else:
             log.error("keyboard fw have no Vial support nor touchboard-meta.json found, touchboard will not work")
 
@@ -413,7 +425,7 @@ def setup_application(config):
         else:
             tray.setIcon(icons["not_found"])
 
-        if layer == config.get("touchboard-layer"):
+        if layer == str(touchboard_layer):
             if not multiclick_waiting and not touchboard_displayed:
                 # macosx specific benavior of pynput multiclicks, it's a hack sorry
                 mouse._click = 0
@@ -429,7 +441,7 @@ def setup_application(config):
         nonlocal multiclick_waiting
         if multiclick_waiting == True:
             protocol.send(
-                device, [protocol.INVERT_LAYER, int(config.get("touchboard-layer"))]
+                device, [protocol.INVERT_LAYER, touchboard_layer]
             )
             multiclick_waiting = False
             # macosx specific benavior of pynput multiclicks, it's a hack sorry

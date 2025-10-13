@@ -8,14 +8,14 @@ import keycodes
 
 
 # FIXME kle seems to be more complex, some ready and tested lib required here
-def keymap_to_positions(keymap):
+def keymap_to_positions(keymap, move_buttons_positions):
     buttons = {}
     x_margin = 0.25
-    x_pos = x_margin
+    x_pos = 0
     y_pos = 0
     x_mod = 0
     y_mod = 0
-    max_x, max_y = 0, 0
+    max_x, max_y, min_x, min_y = 0, 0, 1000, 1000
     for row, line in enumerate(keymap):
         skipped = 0
         height = 1
@@ -34,13 +34,16 @@ def keymap_to_positions(keymap):
             else:
                 x = x_pos + x_mod + width / 2
                 y = y_pos + y_mod + height / 2
-                max_x = max(max_x, x)
-                max_y = max(max_y, y)
-                buttons[data] = (
-                    x,
-                    y,
-                    width,
-                )
+                if move_buttons_positions is not None and data in move_buttons_positions:
+                    max_x = max(max_x, x)
+                    max_y = max(max_y, y)
+                    min_x = min(min_x, x)
+                    min_y = min(min_y, y)
+                    buttons[data] = (
+                        x,
+                        y,
+                        width,
+                    )
 
                 x_pos = x_pos + x_mod + width
 
@@ -49,10 +52,18 @@ def keymap_to_positions(keymap):
 
                 x_mod = 0
 
-        x_pos = x_margin
+        x_pos = 0
         y_pos = y_pos + 1
 
-    return buttons, max_x + x_margin, max_y
+    aligned_buttons = {}
+    for pos, button in buttons.items():
+        aligned_buttons[pos] = (
+            button[0] - min_x + 0.5 + x_margin,
+            button[1] - min_y + 0.5,
+            button[2],
+        )
+
+    return aligned_buttons, max_x - min_x + 0.5 + x_margin * 2, max_y - min_y + 0.5
 
 
 class Window(QWidget):
@@ -75,8 +86,8 @@ class Window(QWidget):
         lo.addWidget(self.label)
         self.setLayout(lo)
 
-    def set_keymap(self, keymap):
-        self.buttons, self.max_x, self.max_y = keymap_to_positions(keymap)
+    def set_keymap(self, keymap, move_buttons_positions = None):
+        self.buttons, self.max_x, self.max_y = keymap_to_positions(keymap, move_buttons_positions)
 
     def set_keymap_labels(self, labels):
         self.keymap_labels = labels
