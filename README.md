@@ -253,7 +253,7 @@ Put generated code into related files.
 ## Layout setup
 
 With QMK or Vial assign TB_* buttons on the layer of your choice.
-For now TB_MOVE should be assigned to all buttons except last row. TB_1 and TB_2 should be assigned to the last row.
+TB_MOVE should be assigned to the buttons which will be used to control pointer positions. TB_MOVE should be assignes to relatively big and square area of layer, the bigger the areal TB_MOVE assigned to the easier it will be position the pointer. TB_1 and TB_2 should be assigned for buttons instead of Mouse_1 and Mouse_2 for clicks.
 
 ## Companion app configuration
 
