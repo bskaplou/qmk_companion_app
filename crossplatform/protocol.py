@@ -65,6 +65,7 @@ def close(device):
 def candidates(raw_usage_page=RAW_USAGE_PAGE, raw_usage_id=RAW_USAGE_ID):
     candidates = []
     for dev in hid.enumerate():
+        # if dev["usage_page"] == raw_usage_page and dev["usage"] == raw_usage_id and dev["product_id"] == 611:
         if dev["usage_page"] == raw_usage_page and dev["usage"] == raw_usage_id:
             candidates.append(
                 {
@@ -76,7 +77,6 @@ def candidates(raw_usage_page=RAW_USAGE_PAGE, raw_usage_id=RAW_USAGE_ID):
                     "manufacturer_string": dev["manufacturer_string"],
                 }
             )
-
     return candidates
 
 
@@ -94,30 +94,36 @@ def send(device, data, raw=False):
 
 
 def recv(device, timeout=None, raw=False):
-    finish_before = round(time.time() * 1000) + (0 if timeout is None else timeout)
+    response = device.read(MESSAGE_LENGTH, timeout=timeout)
+    if len(response) == 0:
+        log.info("read timeout")
+        return None
+    elif raw or (
+        response[0] >= HID_LAYERS_OUT_STATE and response[0] <= HID_LAYERS_OUT_ERROR
+    ):
+        return response
+    else:
+        log.error("non-protocol HID message received %s", response)
+        return None
 
-    while timeout is None or round(time.time() * 1000) < finish_before:
-        timeout_remaining = (
-            None if timeout is None else finish_before - round(time.time() * 1000)
-        )
-        response = device.read(MESSAGE_LENGTH, timeout=timeout_remaining)
-        if len(response) == 0:
-            log.info("read timeout")
-            return None
-        elif raw or (
-            response[0] >= HID_LAYERS_OUT_STATE and response[0] <= HID_LAYERS_OUT_ERROR
-        ):
+
+def send_recv(device, data, raw=False, retries=5):
+    while retries > 0:
+        send(device, data, raw=raw)
+        response = recv(device, timeout=500, raw=raw)
+        if response is not None:
             return response
-        else:
-            log.error("non-protocol HID message received %s", response)
+        retries = retries - 1
+        log.error("empty response retries = %s", retries)
+        if retries > 0:
+            time.sleep(0.5)
 
     return None
 
 
 def enable_reporting_and_get_state(device):
     log.info("sending GET_LAYERS_STATE")
-    send(device, [GET_LAYERS_STATE])
-    response = recv(device, 500)
+    response = send_recv(device, [GET_LAYERS_STATE])
     if response is None:
         return None
 
@@ -132,8 +138,7 @@ def enable_reporting_and_get_state(device):
         state = response[1], response[2]  # layer num, caps sword
     else:
         log.info("layer reporting is not enabled %s, will enable it now", response[2])
-        send(device, [SET_REPORT_CHANGE, 1])
-        response = recv(device, 500)
+        response = send_recv(device, [SET_REPORT_CHANGE, 1])
         if response[3] != 1:
             log.error("failed to enable layer reporting, dig deeper!")
             return None
@@ -151,8 +156,7 @@ def enable_reporting_and_get_state(device):
         log.info("report press already enabled %s", response[4])
     else:
         log.info("report press is not enabled %s, will enable it now", response[4])
-        send(device, [SET_REPORT_PRESS, 1])
-        response = recv(device, 500)
+        response = send_recv(device, [SET_REPORT_PRESS, 1])
         if response[4] != 1:
             log.error("failed to enable press reporting, dig deeper!")
             return None
@@ -169,8 +173,7 @@ def disable_reporting(device):
 
 
 def load_vial_meta(device):
-    send(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_SIZE], raw=True)
-    response = recv(device, timeout=100, raw=True)
+    response = send_recv(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_SIZE], raw=True)
     if response is None:
         log.error("failed to load vial meta size with timeout")
         return None
@@ -180,12 +183,11 @@ def load_vial_meta(device):
     layout = b""
     block = 0
     while remaining_size > 0:
-        send(
+        data = send_recv(
             device,
             struct.pack("<BBI", CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_DEFINITION, block),
             raw=True,
         )
-        data = recv(device, timeout=100, raw=True)
         if data is None:
             log.info("failed to load block %s of vial definition", block)
             return None
@@ -200,8 +202,15 @@ def load_vial_meta(device):
 
 
 def load_layers_count(device):
-    send(device, [CMD_VIA_GET_LAYER_COUNT], raw=True)
-    response = recv(device, timeout=100, raw=True)
+    data_ok = False
+    attempts = 5
+    while not data_ok and attempts > 0:
+        response = send_recv(device, [CMD_VIA_GET_LAYER_COUNT], raw=True)
+        data_ok = response[0] == CMD_VIA_GET_LAYER_COUNT
+        if not data_ok:
+            attempts = attempts - 1
+            log.error("corrupted data received from keyboard %s during load_layers_count attempts remaining %s", response, attempts)
+
     if response is None:
         log.error("failed to load layers count")
         return None
@@ -220,13 +229,21 @@ def load_layers_keymaps(device, layers, rows, cols, keys):
     for x in range(0, size, BUFFER_FETCH_CHUNK):
         offset = x
         sz = min(size - offset, BUFFER_FETCH_CHUNK)
-        send(
-            device, struct.pack(">BHB", CMD_VIA_KEYMAP_GET_BUFFER, offset, sz), raw=True
-        )
-        data = recv(device, timeout=100, raw=True)
-        if data is None:
+        data_ok = False
+        attempts = 5
+        while not data_ok and attempts > 0:
+            data = send_recv(
+                device, struct.pack(">BHB", CMD_VIA_KEYMAP_GET_BUFFER, offset, sz), raw=True
+            )
+            data_ok = data is not None and data[0] == CMD_VIA_KEYMAP_GET_BUFFER
+            if not data_ok:
+                attempts = attempts - 1
+                log.error("corrupted data received from keyboard %s during load_layers_keymaps attempts remaining %s", data, attempts)
+
+        if not data_ok:
             log.error("failed to load layers/keymaps")
             return None
+
         keymap += data[4 : 4 + sz]
 
     log.info("successfully loaded layers/keymaps")
@@ -247,15 +264,13 @@ def load_layers_keymaps(device, layers, rows, cols, keys):
 
 def discover_capabilities(device):
     info = {}
-    send(device, [CMD_VIA_GET_PROTOCOL_VERSION], raw=True)
-    response = recv(device, timeout=200, raw=True)
+    response = send_recv(device, [CMD_VIA_GET_PROTOCOL_VERSION], raw=True)
     if response is None:
         info["via"] = None
     else:
         info["via"] = response[0]
 
-    send(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_KEYBOARD_ID], raw=True)
-    response = recv(device, timeout=200, raw=True)
+    response = send_recv(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_KEYBOARD_ID], raw=True)
     if response is None or response[0] == VIA_UNHANDLED:
         info["vial"] = None
     else:
@@ -263,8 +278,7 @@ def discover_capabilities(device):
             (response[3] << 24) + (response[2] << 16) + (response[1] << 8) + response[0]
         )
 
-    send(device, [GET_VERSION])
-    response = recv(device, timeout=200)
+    response = send_recv(device, [GET_VERSION])
     if response is None or response[0] != HID_LAYERS_OUT_VERSION:
         info["companion_hid"] = None
     else:

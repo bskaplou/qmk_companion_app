@@ -43,30 +43,31 @@ device = None
 stop = False
 
 
-def load_keymaps(device, capabilities):
-    vial_meta = None
-    if capabilities.get("vial") is not None:
-        vial_meta = protocol.load_vial_meta(device)
+def load_keymaps(device, capabilities, config_meta):
+    meta = config_meta
+    if meta is None and capabilities.get("vial") is not None:
+        meta = protocol.load_vial_meta(device)
 
     layers_keymaps = None
-    if capabilities.get("via") is not None:
+    if capabilities.get("via") is not None and meta is not None:
         layers_count = protocol.load_layers_count(device)
         keys = []
-        for row in vial_meta["layouts"]["keymap"]:
+        for row in meta["layouts"]["keymap"]:
             keys = keys + list(filter(lambda e: isinstance(e, str), row))
 
         layers_keymaps = protocol.load_layers_keymaps(
             device,
             layers_count,
-            vial_meta["matrix"]["rows"],
-            vial_meta["matrix"]["cols"],
+            meta["matrix"]["rows"],
+            meta["matrix"]["cols"],
             keys,
         )
 
-    return vial_meta, layers_keymaps
+    return meta, layers_keymaps
 
 
 def process_loop(
+    config_meta,
     callback_state,
     callback_wait,
     callback_select_device,
@@ -95,7 +96,7 @@ def process_loop(
                 else:
                     current_layer, caps_word = state
                     if callback_keymaps is not None:
-                        vial_meta, layers = load_keymaps(device, capabilities)
+                        vial_meta, layers = load_keymaps(device, capabilities, config_meta)
                         callback_keymaps(vial_meta, layers)
 
                     callback_state(current_layer, caps_word)
@@ -351,6 +352,7 @@ def setup_application(config):
         if layers is not None:
             for layer, keys in enumerate(layers):
                 mmove = list(map(lambda i: i[0], filter(lambda i: i[1] == touchboard_move_keycode, keys.items())))
+                log.info("on layer %s TB_MOVE buttons count = %s", layer, len(mmove))
                 if len(mmove) > 0 and touchboard_layer == -1:
                     touchboard_layer = layer
                     log.info("detected touchboard-layer is %s", layer)
@@ -386,6 +388,7 @@ def setup_application(config):
     pool = QThreadPool()
     pool.start(
         lambda: process_loop(
+            config.get("touchboard-meta"),
             update_state,
             wait_for_device,
             select_device,
@@ -441,7 +444,7 @@ def setup_application(config):
     def multiclick_timeout():
         nonlocal multiclick_waiting
         if multiclick_waiting == True:
-            protocol.send(
+            protocol.send_recv(
                 device, [protocol.INVERT_LAYER, touchboard_layer]
             )
             multiclick_waiting = False
