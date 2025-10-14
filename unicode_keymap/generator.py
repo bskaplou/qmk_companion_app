@@ -73,6 +73,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             symbol_bytes = list((bytes([0, 0, 0]) + bytes.fromhex(symbol[1:]))[-4:])
             symbol = str(bytes(list(reversed(symbol_bytes))), "utf32")
         else:
+            #FIXME multisymbol unicode is not supported, might be implemented through several symbols ans macros for now
+            if len(symbol) > 1:
+                symbol = symbol[0]
+
             symbol_bytes = list(reversed(bytes(symbol, "utf32")[4:]))
 
         symbol_hex = []

@@ -128,7 +128,7 @@ APPLICATION_NAME = "QmkLayoutWidget"
 CONFIG_FILE = "configuration.json"
 TOUCHBOARD_META_FILE = "touchboard-meta.json"
 
-TOUCHBOARD_MOVE_KEYCODE = 0x7E00
+DEFAULT_TOUCHBOARD_MOVE_KEYCODE = 0x7E00
 
 DEFAULT_TOUCHBOARD_MOVE = "🐁"
 DEFAULT_TOUCHBOARD_LEFT = "←"
@@ -346,10 +346,11 @@ def setup_application(config):
 
     def keymaps_update(vial_meta, layers):
         nonlocal touchboard_layer
+        touchboard_move_keycode = config.get("touchboard-move-keycode", DEFAULT_TOUCHBOARD_MOVE_KEYCODE)
         move_buttons_positions = None
         if layers is not None:
             for layer, keys in enumerate(layers):
-                mmove = list(map(lambda i: i[0], filter(lambda i: i[1] == TOUCHBOARD_MOVE_KEYCODE, keys.items())))
+                mmove = list(map(lambda i: i[0], filter(lambda i: i[1] == touchboard_move_keycode, keys.items())))
                 if len(mmove) > 0 and touchboard_layer == -1:
                     touchboard_layer = layer
                     log.info("detected touchboard-layer is %s", layer)
