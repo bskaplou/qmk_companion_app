@@ -43,8 +43,7 @@ device = None
 stop = False
 
 
-def load_keymaps(device, capabilities, config_meta):
-    meta = config_meta
+def load_keymaps(device, capabilities, meta):
     if meta is None and capabilities.get("vial") is not None:
         meta = protocol.load_vial_meta(device)
 
@@ -72,7 +71,7 @@ def process_loop(
     callback_wait,
     callback_select_device,
     callback_press,
-    callback_keymaps=None,
+    callback_keymaps,
 ):
     global device
     while not stop:
@@ -347,7 +346,7 @@ def setup_application(config):
 
     def keymaps_update(vial_meta, layers):
         nonlocal touchboard_layer
-        touchboard_move_keycode = config.get("touchboard-move-keycode", DEFAULT_TOUCHBOARD_MOVE_KEYCODE)
+        touchboard_move_keycode = int(config.get("touchboard-move-keycode", DEFAULT_TOUCHBOARD_MOVE_KEYCODE), 0)
         move_buttons_positions = None
         if layers is not None:
             for layer, keys in enumerate(layers):

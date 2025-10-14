@@ -45,8 +45,8 @@ labels = {
     0x002C: "␣",  # KC_SPACE
     0x002D: "-",  # KC_MINUS
     0x002E: "=",  # KC_EQUAL
-    0x002F: "(",  # KC_LEFT_BRACKET
-    0x0030: ")",  # KC_RIGHT_BRACKET
+    0x002F: "[",  # KC_LEFT_BRACKET
+    0x0030: "]",  # KC_RIGHT_BRACKET
     0x0031: "\\",  # KC_BACKSLASH
     0x0032: "#",  # KC_NONUS_HASH
     0x0033: ";",  # KC_SEMICOLON

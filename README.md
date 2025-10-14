@@ -268,6 +268,12 @@ For raw QMK firmware it's necessaty to add key with number of layer which is use
 
 ```
 
+If in your setup TB_MOVE is assigned not to QK_KB_0, it's necessary to add line to config defining keycode assigned to TB_MOVE for example
+
+```
+    "touchboard-move-keycode": "0x7E0D",
+```
+
 If keyboard uses Vial firmware app will load keymap directly from keyboard and build keymap labels.
 
 Otherwise it's necessary to copy via.json or vial.json into configuration directory with name touchboard-meta.json.
