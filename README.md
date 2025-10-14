@@ -255,6 +255,8 @@ Put generated code into related files.
 With QMK or Vial assign TB_* buttons on the layer of your choice.
 TB_MOVE should be assigned to the buttons which will be used to control pointer positions. TB_MOVE should be assignes to relatively big and square area of layer, the bigger the areal TB_MOVE assigned to the easier it will be position the pointer. TB_1 and TB_2 should be assigned for buttons instead of Mouse_1 and Mouse_2 for clicks.
 
+<img width="844" height="449" alt="touchboard_layer_setup" src="https://github.com/user-attachments/assets/43b3ce90-96b6-40ca-9e1b-e284d1427d3e" />
+
 ## Companion app configuration
 
 Layer with touchboard buttons will be detected automatically for keyboards with Via/Vial firmware.
