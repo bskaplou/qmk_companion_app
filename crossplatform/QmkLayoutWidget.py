@@ -135,6 +135,7 @@ DEFAULT_TOUCHBOARD_MOVE_KEYCODE = "0x7E00"
 DEFAULT_TOUCHBOARD_MOVE = "🐁"
 DEFAULT_TOUCHBOARD_LEFT = "←"
 DEFAULT_TOUCHBOARD_RIGHT = "→"
+DEFAULT_TOUCHBOARD_MULTICLICK_PERIOD = 250
 
 DEFAULT_CONFIG = {
     "mode": "dark" if QSysInfo.kernelType() == "darwin" else "light",
@@ -235,8 +236,15 @@ def setup_application(config):
         log.info("app should quit now")
 
     def select_device(candidates):
-        signals.devices_update.emit(candidates)
-        return 0
+        device_index = 0
+        if "product-id" in config:
+            for idx, candidate in enumerate(candidates):
+                if candidate["product_id"] == config["product-id"]:
+                    device_index = idx
+
+        signals.devices_update.emit((candidates, device_index))
+
+        return device_index
 
     def wait_for_device():
         nonlocal wait_pos
@@ -413,14 +421,15 @@ def setup_application(config):
     )
 
     @Slot()
-    def draw_devices_menu(devices):
+    def draw_devices_menu(arg):
+        devices, active_device_idx = arg
         menu.clear()
 
         for idx, dev in enumerate(devices):
             da = device_actions[idx]
 
             label = f"{dev['product_string']} - {dev['path'].decode('utf8')}"
-            if idx == 0:
+            if idx == active_device_idx:
                 da.setText(f"✓ {label}")
             else:
                 da.setText(f"  {label}")
@@ -466,7 +475,13 @@ def setup_application(config):
             mouse._click = None
 
     multiclick_timer = QTimer()
-    multiclick_timer.setInterval(500)
+    multiclick_timer.setInterval(
+        int(
+            config.get(
+                "touchboard-multiclick-period", DEFAULT_TOUCHBOARD_MULTICLICK_PERIOD
+            )
+        )
+    )
     multiclick_timer.timeout.connect(multiclick_timeout)
     multiclick_timer.setSingleShot(True)
 
