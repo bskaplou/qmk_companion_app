@@ -209,7 +209,11 @@ def load_layers_count(device):
         data_ok = response[0] == CMD_VIA_GET_LAYER_COUNT
         if not data_ok:
             attempts = attempts - 1
-            log.error("corrupted data received from keyboard %s during load_layers_count attempts remaining %s", response, attempts)
+            log.error(
+                "corrupted data received from keyboard %s during load_layers_count attempts remaining %s",
+                response,
+                attempts,
+            )
 
     if response is None:
         log.error("failed to load layers count")
@@ -233,12 +237,18 @@ def load_layers_keymaps(device, layers, rows, cols, keys):
         attempts = 5
         while not data_ok and attempts > 0:
             data = send_recv(
-                device, struct.pack(">BHB", CMD_VIA_KEYMAP_GET_BUFFER, offset, sz), raw=True
+                device,
+                struct.pack(">BHB", CMD_VIA_KEYMAP_GET_BUFFER, offset, sz),
+                raw=True,
             )
             data_ok = data is not None and data[0] == CMD_VIA_KEYMAP_GET_BUFFER
             if not data_ok:
                 attempts = attempts - 1
-                log.error("corrupted data received from keyboard %s during load_layers_keymaps attempts remaining %s", data, attempts)
+                log.error(
+                    "corrupted data received from keyboard %s during load_layers_keymaps attempts remaining %s",
+                    data,
+                    attempts,
+                )
 
         if not data_ok:
             log.error("failed to load layers/keymaps")
@@ -270,7 +280,9 @@ def discover_capabilities(device):
     else:
         info["via"] = response[0]
 
-    response = send_recv(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_KEYBOARD_ID], raw=True)
+    response = send_recv(
+        device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_KEYBOARD_ID], raw=True
+    )
     if response is None or response[0] == VIA_UNHANDLED:
         info["vial"] = None
     else:

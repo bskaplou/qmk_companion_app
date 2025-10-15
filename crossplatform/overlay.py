@@ -34,7 +34,10 @@ def keymap_to_positions(keymap, move_buttons_positions):
             else:
                 x = x_pos + x_mod + width / 2
                 y = y_pos + y_mod + height / 2
-                if move_buttons_positions is not None and data in move_buttons_positions:
+                if (
+                    move_buttons_positions is not None
+                    and data in move_buttons_positions
+                ):
                     max_x = max(max_x, x)
                     max_y = max(max_y, y)
                     min_x = min(min_x, x)
@@ -86,8 +89,10 @@ class Window(QWidget):
         lo.addWidget(self.label)
         self.setLayout(lo)
 
-    def set_keymap(self, keymap, move_buttons_positions = None):
-        self.buttons, self.max_x, self.max_y = keymap_to_positions(keymap, move_buttons_positions)
+    def set_keymap(self, keymap, move_buttons_positions=None):
+        self.buttons, self.max_x, self.max_y = keymap_to_positions(
+            keymap, move_buttons_positions
+        )
 
     def set_keymap_labels(self, labels):
         self.keymap_labels = labels

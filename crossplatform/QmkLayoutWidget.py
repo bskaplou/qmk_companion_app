@@ -95,7 +95,9 @@ def process_loop(
                 else:
                     current_layer, caps_word = state
                     if callback_keymaps is not None:
-                        vial_meta, layers = load_keymaps(device, capabilities, config_meta)
+                        vial_meta, layers = load_keymaps(
+                            device, capabilities, config_meta
+                        )
                         callback_keymaps(vial_meta, layers)
 
                     callback_state(current_layer, caps_word)
@@ -346,11 +348,18 @@ def setup_application(config):
 
     def keymaps_update(vial_meta, layers):
         nonlocal touchboard_layer
-        touchboard_move_keycode = int(config.get("touchboard-move-keycode", DEFAULT_TOUCHBOARD_MOVE_KEYCODE), 0)
+        touchboard_move_keycode = int(
+            config.get("touchboard-move-keycode", DEFAULT_TOUCHBOARD_MOVE_KEYCODE), 0
+        )
         move_buttons_positions = None
         if layers is not None:
             for layer, keys in enumerate(layers):
-                mmove = list(map(lambda i: i[0], filter(lambda i: i[1] == touchboard_move_keycode, keys.items())))
+                mmove = list(
+                    map(
+                        lambda i: i[0],
+                        filter(lambda i: i[1] == touchboard_move_keycode, keys.items()),
+                    )
+                )
                 log.info("on layer %s TB_MOVE buttons count = %s", layer, len(mmove))
                 if len(mmove) > 0 and touchboard_layer == -1:
                     touchboard_layer = layer
@@ -363,13 +372,18 @@ def setup_application(config):
             and config["touchboard-meta"]["layouts"].get("keymap") != None
         ):
             log.info("keymap loaded from config")
-            touchboard.set_keymap(config["touchboard-meta"]["layouts"]["keymap"], move_buttons_positions)
+            touchboard.set_keymap(
+                config["touchboard-meta"]["layouts"]["keymap"], move_buttons_positions
+            )
         elif vial_meta is not None:
             log.info("keymap loaded from vial")
-            touchboard.set_keymap(vial_meta["layouts"]["keymap"], move_buttons_positions)
+            touchboard.set_keymap(
+                vial_meta["layouts"]["keymap"], move_buttons_positions
+            )
         else:
-            log.error("keyboard fw have no Vial support nor touchboard-meta.json found, touchboard will not work")
-
+            log.error(
+                "keyboard fw have no Vial support nor touchboard-meta.json found, touchboard will not work"
+            )
 
         if config.get("touchboard-keymap-labels") is not None:
             log.info("keymap-labels loaded from config")
@@ -382,7 +396,9 @@ def setup_application(config):
             log.info("keymap-labels loaded from via")
             touchboard.set_keymap_labels(keymap_labels)
         else:
-            log.error("keyboard fw have no Via support nor touchboard-keymap-labels found in config file, touchboard will not work")
+            log.error(
+                "keyboard fw have no Via support nor touchboard-keymap-labels found in config file, touchboard will not work"
+            )
 
     pool = QThreadPool()
     pool.start(
@@ -443,9 +459,7 @@ def setup_application(config):
     def multiclick_timeout():
         nonlocal multiclick_waiting
         if multiclick_waiting == True:
-            protocol.send_recv(
-                device, [protocol.INVERT_LAYER, touchboard_layer]
-            )
+            protocol.send_recv(device, [protocol.INVERT_LAYER, touchboard_layer])
             multiclick_waiting = False
             # macosx specific benavior of pynput multiclicks, it's a hack sorry
             mouse._click = None
