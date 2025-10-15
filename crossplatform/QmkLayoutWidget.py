@@ -459,7 +459,8 @@ def setup_application(config):
     def multiclick_timeout():
         nonlocal multiclick_waiting
         if multiclick_waiting == True:
-            protocol.send_recv(device, [protocol.INVERT_LAYER, touchboard_layer])
+            # recv is not allowed here, read happens in other thread
+            protocol.send(device, [protocol.INVERT_LAYER, touchboard_layer])
             multiclick_waiting = False
             # macosx specific benavior of pynput multiclicks, it's a hack sorry
             mouse._click = None
