@@ -240,6 +240,11 @@ def setup_application(config):
         if "product-id" in config:
             for idx, candidate in enumerate(candidates):
                 if candidate["product_id"] == config["product-id"]:
+                    log.info(
+                        "found device matching config product_id %s in index %s",
+                        candidate,
+                        idx,
+                    )
                     device_index = idx
 
         signals.devices_update.emit((candidates, device_index))
@@ -263,7 +268,7 @@ def setup_application(config):
         try:
             original = copykitten.paste()
         except Exception as e:
-            log.error("opykitten.paste %s", e)
+            log.error("copykitten.paste %s", e)
             original = ""
 
         copykitten.copy(symbol)
@@ -278,7 +283,7 @@ def setup_application(config):
         try:
             copykitten.copy(original)
         except Exception as e:
-            log.error("opykitten.copy %s", e)
+            log.error("copykitten.copy %s", e)
 
     def press_received(symbol, row, col, action):
         signals.press_received.emit(

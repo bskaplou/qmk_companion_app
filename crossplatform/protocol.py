@@ -278,7 +278,7 @@ def discover_capabilities(device):
     if response is None:
         info["via"] = None
     else:
-        info["via"] = response[0]
+        info["via"] = response[2]
 
     response = send_recv(
         device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_KEYBOARD_ID], raw=True
