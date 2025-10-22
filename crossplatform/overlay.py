@@ -105,6 +105,8 @@ class Window(QWidget):
             canvas = QtGui.QPixmap(self.width * 2, self.height * 2)
             canvas.setDevicePixelRatio(2)
             # End of retina
+        else:
+            canvas = QtGui.QPixmap(self.width, self.height)
 
         canvas.fill(Qt.white)
 

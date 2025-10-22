@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from pictex import *
+from pictex import Canvas, CropMode, Text, Row
 
 icons = {
     #'default': '\U000F030C',
@@ -50,7 +50,7 @@ size = 1024
 app_icon_code = "\U000000c6"
 box = (
     Row(
-        Text(app_icon_code).font_size(size * 1.4).color(bc).position("center", "center")
+        Text(app_icon_code).font_size(size * 1.4).color("black").position("center", "center")
     )
     .background_color("white")
     .size(width=size, height=size)
@@ -59,4 +59,4 @@ box = (
 
 image = canvas.render(box, crop_mode=CropMode.CONTENT_BOX)
 
-image.to_pillow().rotate(30).save(f"icons/app_icon.png")
+image.to_pillow().rotate(30).save("icons/app_icon.png")
