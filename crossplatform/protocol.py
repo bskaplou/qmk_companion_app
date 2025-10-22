@@ -138,9 +138,7 @@ def enable_reporting_and_get_state(device):
     else:
         log.info("layer reporting is not enabled %s, will enable it now", response[2])
         response = send_recv(device, [SET_REPORT_CHANGE, 1])
-        if response is None:
-            return None
-        if response[3] != 1:
+        if response is None or response[3] != 1:
             log.error("failed to enable layer reporting, dig deeper!")
             return None
 
@@ -158,9 +156,7 @@ def enable_reporting_and_get_state(device):
     else:
         log.info("report press is not enabled %s, will enable it now", response[4])
         response = send_recv(device, [SET_REPORT_PRESS, 1])
-        if response is None:
-            return None
-        if response[4] != 1:
+        if response is None or response[4] != 1:
             log.error("failed to enable press reporting, dig deeper!")
             return None
 
