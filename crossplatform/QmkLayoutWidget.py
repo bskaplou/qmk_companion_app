@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import threading
 import time
 import hid
 import json
 from pathlib import Path
 import os.path
-import random
 from PySide6.QtGui import QIcon, QAction, QGuiApplication
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
 from PySide6.QtCore import (
     Signal,
-    QRunnable,
     QThreadPool,
     Slot,
     QObject,
@@ -26,8 +23,6 @@ import logging
 import protocol
 import overlay
 import keycodes
-
-from pprint import pp
 
 from pynput.keyboard import Key, Controller
 from pynput.mouse import Button, Controller as MouseController
@@ -118,7 +113,7 @@ def process_loop(
                                 callback_press(symbol, row, col, action)
 
                         except hid.HIDException as e:
-                            log.error("hid receive error %s", device_info["path"])
+                            log.error("hid receive error %s, %s", device_info["path"], e)
                             break
         else:
             log.error("No candidate devices found. I'll wait and try later.")
@@ -185,13 +180,6 @@ def init_config():
             'configuration file "%s" not found, I\'ll try to create it', e.filename
         )
 
-    meta_file = os.path.join(
-        config_locations[0], APPLICATION_NAME, TOUCHBOARD_META_FILE
-    )
-    if os.path.isfile(meta_file):
-        log.info("touchboard-meta configuration file found at %s loading...", meta_file)
-        with open(meta_file, "r") as fd:
-            config["touchboard-meta"] = json.loads(fd.read())
 
     if config is None:
         file_path = Path(file_path)
@@ -209,6 +197,14 @@ def init_config():
         log.info("default config %s written feel free to edit", file_path)
 
         config = init_config()
+
+    meta_file = os.path.join(
+        config_locations[0], APPLICATION_NAME, TOUCHBOARD_META_FILE
+    )
+    if os.path.isfile(meta_file):
+        log.info("touchboard-meta configuration file found at %s loading...", meta_file)
+        with open(meta_file, "r") as fd:
+            config["touchboard-meta"] = json.loads(fd.read())
 
     return config
 

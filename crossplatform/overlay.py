@@ -1,10 +1,7 @@
-import json
-from pprint import pp
 import math
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCore import Qt, Signal, Slot, QMargins, QRect, QPoint, QSysInfo
+from PySide6.QtCore import Qt, QMargins, QRect, QPoint, QSysInfo
 from PySide6.QtWidgets import QHBoxLayout, QWidget
-import keycodes
 
 
 # FIXME kle seems to be more complex, some ready and tested lib required here
@@ -17,12 +14,10 @@ def keymap_to_positions(keymap, move_buttons_positions):
     y_mod = 0
     max_x, max_y, min_x, min_y = 0, 0, 1000, 1000
     for row, line in enumerate(keymap):
-        skipped = 0
         height = 1
         width = 1
         for col, data in enumerate(line):
             if isinstance(data, dict):
-                skipped = 0
                 if "x" in data:
                     x_mod = x_mod + data["x"]
                 if "y" in data:

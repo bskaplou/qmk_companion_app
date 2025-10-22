@@ -139,6 +139,8 @@ def enable_reporting_and_get_state(device):
     else:
         log.info("layer reporting is not enabled %s, will enable it now", response[2])
         response = send_recv(device, [SET_REPORT_CHANGE, 1])
+        if response is None:
+            return None
         if response[3] != 1:
             log.error("failed to enable layer reporting, dig deeper!")
             return None
@@ -157,6 +159,8 @@ def enable_reporting_and_get_state(device):
     else:
         log.info("report press is not enabled %s, will enable it now", response[4])
         response = send_recv(device, [SET_REPORT_PRESS, 1])
+        if response is None:
+            return None
         if response[4] != 1:
             log.error("failed to enable press reporting, dig deeper!")
             return None
@@ -206,6 +210,8 @@ def load_layers_count(device):
     attempts = 5
     while not data_ok and attempts > 0:
         response = send_recv(device, [CMD_VIA_GET_LAYER_COUNT], raw=True)
+        if response is None:
+            return None
         data_ok = response[0] == CMD_VIA_GET_LAYER_COUNT
         if not data_ok:
             attempts = attempts - 1
