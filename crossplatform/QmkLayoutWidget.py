@@ -378,7 +378,7 @@ def setup_application(config):
         if (
             config.get("touchboard-meta") is not None
             and config["touchboard-meta"].get("layouts") is not None
-            and config["touchboard-meta"]["layouts"].get("keymap") != None
+            and config["touchboard-meta"]["layouts"].get("keymap") is not None
         ):
             log.info("keymap loaded from config")
             touchboard.set_keymap(
@@ -468,7 +468,7 @@ def setup_application(config):
     @Slot()
     def multiclick_timeout():
         nonlocal multiclick_waiting
-        if multiclick_waiting == True:
+        if multiclick_waiting:
             # recv is not allowed here, read happens in other thread
             protocol.send(device, [protocol.INVERT_LAYER, touchboard_layer])
             multiclick_waiting = False

@@ -72,7 +72,6 @@ def candidates(raw_usage_page=RAW_USAGE_PAGE, raw_usage_id=RAW_USAGE_ID):
                     "path": dev["path"],
                     "vendor_id": dev["vendor_id"],
                     "product_id": dev["product_id"],
-                    "path": dev["path"],
                     "product_string": dev["product_string"],
                     "manufacturer_string": dev["manufacturer_string"],
                 }
