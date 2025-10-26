@@ -23,7 +23,7 @@ def keymap_to_positions(keymap, move_buttons_positions):
                 if "y" in data:
                     y_mod = y_mod + data["y"]
                 if "h" in data:
-                    height = height + data["h"]
+                    height = data["h"]
                 if "w" in data:
                     width = data["w"]
             else:
