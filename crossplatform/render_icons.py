@@ -50,7 +50,10 @@ size = 1024
 app_icon_code = "\U000000c6"
 box = (
     Row(
-        Text(app_icon_code).font_size(size * 1.4).color("black").position("center", "center")
+        Text(app_icon_code)
+        .font_size(size * 1.4)
+        .color("black")
+        .position("center", "center")
     )
     .background_color("white")
     .size(width=size, height=size)

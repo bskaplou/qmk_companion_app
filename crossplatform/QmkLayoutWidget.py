@@ -47,7 +47,12 @@ def load_keymaps(device, capabilities, meta):
         layers_count = protocol.load_layers_count(device)
         keys = []
         for row in meta["layouts"]["keymap"]:
-            keys = keys + list(filter(lambda e: isinstance(e, str), row))
+            keys = keys + list(
+                map(
+                    lambda s: s.split("\n")[0],
+                    filter(lambda e: isinstance(e, str), row),
+                )
+            )
 
         layers_keymaps = protocol.load_layers_keymaps(
             device,
@@ -113,7 +118,9 @@ def process_loop(
                                 callback_press(symbol, row, col, action)
 
                         except hid.HIDException as e:
-                            log.error("hid receive error %s, %s", device_info["path"], e)
+                            log.error(
+                                "hid receive error %s, %s", device_info["path"], e
+                            )
                             break
         else:
             log.error("No candidate devices found. I'll wait and try later.")
@@ -179,7 +186,6 @@ def init_config():
         log.info(
             'configuration file "%s" not found, I\'ll try to create it', e.filename
         )
-
 
     if config is None:
         file_path = Path(file_path)
