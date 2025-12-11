@@ -266,7 +266,7 @@ def load_layers_keymaps(device, layers, rows, cols):
             for col in range(cols):
                 offset = layer * rows * cols * 2 + row * cols * 2 + col * 2
                 keycode = struct.unpack(">H", keymap[offset : offset + 2])[0]
-                keydict[f"{col},{row}"] = keycode
+                keydict[f"{row},{col}"] = keycode
 
         layers_keymaps.append(keydict)
 

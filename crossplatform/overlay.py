@@ -27,17 +27,29 @@ def keymap_to_positions(keymap, move_buttons_positions):
                 if "w" in data:
                     width = data["w"]
             else:
+                marks = data.split("\n")
+                # FIXME support current layout not only default
+                layout_options = "0,0"
+                encoder = False
+                if len(marks) > 3:
+                    layout_options = marks[3]
+                if len(marks) > 9:
+                    encoder = marks[9].startswith("e")
+
+                wiring = marks[0]
                 x = x_pos + x_mod + width / 2
                 y = y_pos + y_mod + height / 2
                 if (
                     move_buttons_positions is not None
-                    and data in move_buttons_positions
+                    and not encoder
+                    and layout_options.endswith(",0")
+                    and wiring in move_buttons_positions
                 ):
                     max_x = max(max_x, x)
                     max_y = max(max_y, y)
                     min_x = min(min_x, x)
                     min_y = min(min_y, y)
-                    buttons[data] = (
+                    buttons[wiring] = (
                         x,
                         y,
                         width,
