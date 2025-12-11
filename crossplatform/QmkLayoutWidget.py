@@ -45,21 +45,11 @@ def load_keymaps(device, capabilities, meta):
     layers_keymaps = None
     if capabilities.get("via") is not None and meta is not None:
         layers_count = protocol.load_layers_count(device)
-        keys = []
-        for row in meta["layouts"]["keymap"]:
-            keys = keys + list(
-                map(
-                    lambda s: s.split("\n")[0],
-                    filter(lambda e: isinstance(e, str), row),
-                )
-            )
-
         layers_keymaps = protocol.load_layers_keymaps(
             device,
             layers_count,
             meta["matrix"]["rows"],
             meta["matrix"]["cols"],
-            keys,
         )
 
     return meta, layers_keymaps

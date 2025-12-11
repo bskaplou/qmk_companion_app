@@ -227,7 +227,7 @@ def load_layers_count(device):
 BUFFER_FETCH_CHUNK = 28
 
 
-def load_layers_keymaps(device, layers, rows, cols, keys):
+def load_layers_keymaps(device, layers, rows, cols):
     size = layers * rows * cols * 2
     log.info("loading layers/keymaps of size %s", size)
     keymap = b""
@@ -262,11 +262,11 @@ def load_layers_keymaps(device, layers, rows, cols, keys):
     layers_keymaps = []
     for layer in range(layers):
         keydict = {}
-        for key in keys:
-            row, col = list(map(int, key.split(",")))
-            offset = layer * rows * cols * 2 + row * cols * 2 + col * 2
-            keycode = struct.unpack(">H", keymap[offset : offset + 2])[0]
-            keydict[key] = keycode
+        for row in range(rows):
+            for col in range(cols):
+                offset = layer * rows * cols * 2 + row * cols * 2 + col * 2
+                keycode = struct.unpack(">H", keymap[offset : offset + 2])[0]
+                keydict[f"{col},{row}"] = keycode
 
         layers_keymaps.append(keydict)
 
