@@ -44,6 +44,7 @@ def load_keymaps(device, capabilities, meta):
 
     layers_keymaps = None
     if capabilities.get("via") is not None and meta is not None:
+        layout_options = protocol.load_layout_options(device, meta)
         layers_count = protocol.load_layers_count(device)
         layers_keymaps = protocol.load_layers_keymaps(
             device,
@@ -52,7 +53,7 @@ def load_keymaps(device, capabilities, meta):
             meta["matrix"]["cols"],
         )
 
-    return meta, layers_keymaps
+    return meta, layers_keymaps, layout_options
 
 
 def process_loop(
@@ -85,10 +86,10 @@ def process_loop(
                 else:
                     current_layer, caps_word = state
                     if callback_keymaps is not None:
-                        vial_meta, layers = load_keymaps(
+                        vial_meta, layers, layout_options = load_keymaps(
                             device, capabilities, config_meta
                         )
-                        callback_keymaps(vial_meta, layers)
+                        callback_keymaps(vial_meta, layers, layout_options)
 
                     callback_state(current_layer, caps_word)
 
@@ -351,7 +352,7 @@ def setup_application(config):
     tray.setContextMenu(menu)
     tray.setVisible(True)
 
-    def keymaps_update(vial_meta, layers):
+    def keymaps_update(vial_meta, layers, layout_options):
         nonlocal touchboard_layer
         touchboard_move_keycode = int(
             config.get("touchboard-move-keycode", DEFAULT_TOUCHBOARD_MOVE_KEYCODE), 0
@@ -378,12 +379,14 @@ def setup_application(config):
         ):
             log.info("keymap loaded from config")
             touchboard.set_keymap(
-                config["touchboard-meta"]["layouts"]["keymap"], move_buttons_positions
+                config["touchboard-meta"]["layouts"]["keymap"],
+                move_buttons_positions,
+                layout_options,
             )
         elif vial_meta is not None:
             log.info("keymap loaded from vial")
             touchboard.set_keymap(
-                vial_meta["layouts"]["keymap"], move_buttons_positions
+                vial_meta["layouts"]["keymap"], move_buttons_positions, layout_options
             )
         else:
             log.error(

@@ -5,7 +5,8 @@ from PySide6.QtWidgets import QHBoxLayout, QWidget
 
 
 # FIXME kle seems to be more complex, some ready and tested lib required here
-def keymap_to_positions(keymap, move_buttons_positions):
+def keymap_to_positions(keymap, move_buttons_positions, layout_options):
+    layout_options = list(map(lambda o: f"{o[0]},{o[1]}", layout_options))
     buttons = {}
     x_margin = 0.25
     x_pos = 0
@@ -29,10 +30,10 @@ def keymap_to_positions(keymap, move_buttons_positions):
             else:
                 marks = data.split("\n")
                 # FIXME support current layout not only default
-                layout_options = "0,0"
+                layout_variant = None
                 encoder = False
                 if len(marks) > 3:
-                    layout_options = marks[3]
+                    layout_variant = marks[3]
                 if len(marks) > 9:
                     encoder = marks[9].startswith("e")
 
@@ -42,7 +43,7 @@ def keymap_to_positions(keymap, move_buttons_positions):
                 if (
                     move_buttons_positions is not None
                     and not encoder
-                    and layout_options.endswith(",0")
+                    and (layout_variant is None or layout_variant in layout_options)
                     and wiring in move_buttons_positions
                 ):
                     max_x = max(max_x, x)
@@ -96,9 +97,9 @@ class Window(QWidget):
         lo.addWidget(self.label)
         self.setLayout(lo)
 
-    def set_keymap(self, keymap, move_buttons_positions=None):
+    def set_keymap(self, keymap, move_buttons_positions=None, layout_options=None):
         self.buttons, self.max_x, self.max_y = keymap_to_positions(
-            keymap, move_buttons_positions
+            keymap, move_buttons_positions, layout_options
         )
 
     def set_keymap_labels(self, labels):

@@ -31,6 +31,7 @@ SET_REPORT_PRESS = 0x04
 MESSAGE_LENGTH = 32
 
 CMD_VIA_GET_PROTOCOL_VERSION = 0x01
+CMD_VIA_GET_KEYBOARD_VALUE = 0x02
 CMD_VIA_VIAL_PREFIX = 0xFE
 CMD_VIAL_GET_KEYBOARD_ID = 0x00
 CMD_VIAL_GET_SIZE = 0x01
@@ -38,6 +39,7 @@ CMD_VIAL_GET_DEFINITION = 0x02
 CMD_VIA_GET_LAYER_COUNT = 0x11
 CMD_VIA_KEYMAP_GET_BUFFER = 0x12
 VIA_UNHANDLED = 0xFF
+VIA_LAYOUT_OPTIONS = 0x02
 
 
 def open(product_id, vendor_id, path):
@@ -298,3 +300,34 @@ def discover_capabilities(device):
         info["companion_hid"] = response[1]
 
     return info
+
+
+def load_layout_options(device, meta):
+    if meta.get("layouts") is None or meta["layouts"].get("labels") is None:
+        return [(0, 0)]
+
+    response = send_recv(
+        device, [CMD_VIA_GET_KEYBOARD_VALUE, VIA_LAYOUT_OPTIONS], raw=True
+    )
+    layout_options = struct.unpack(">I", response[2:6])[0]
+
+    layout_labels = meta["layouts"]["labels"]
+    result = []
+    start_bit = 0
+    for ridx, label in enumerate(reversed(layout_labels)):
+        idx = len(layout_labels) - 1 - ridx
+        option, variant = idx, 0
+        if isinstance(label, str):
+            variant_count = len(label) - 1
+        else:
+            variant_count = 2
+
+        for i in range(variant_count):
+            if (layout_options >> (start_bit + i)) & 1 == 1:
+                variant = i + 1
+
+        start_bit += variant_count
+
+        result.append((option, variant))
+
+    return list(reversed(result))
