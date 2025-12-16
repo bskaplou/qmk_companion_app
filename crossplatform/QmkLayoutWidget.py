@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import traceback
 import time
 import hid
 import json
@@ -65,58 +66,63 @@ def process_loop(
     callback_keymaps,
 ):
     global device
-    while not stop:
-        callback_wait()
-        candidates = protocol.candidates()
-        if len(candidates) > 0:
-            active_device_index = callback_select_device(candidates)
-            device_info = candidates[active_device_index]
-            device = protocol.open(
-                device_info["vendor_id"], device_info["product_id"], device_info["path"]
-            )
-            if device is not None:
-                capabilities = protocol.discover_capabilities(device)
-                log.info("device capabilities discovered %s", capabilities)
-                state = None
-                if capabilities.get("companion_hid") is not None:
-                    state = protocol.enable_reporting_and_get_state(device)
+    try:
+        while not stop:
+            callback_wait()
+            candidates = protocol.candidates()
+            if len(candidates) > 0:
+                active_device_index = callback_select_device(candidates)
+                device_info = candidates[active_device_index]
+                device = protocol.open(
+                    device_info["vendor_id"],
+                    device_info["product_id"],
+                    device_info["path"],
+                )
+                if device is not None:
+                    capabilities = protocol.discover_capabilities(device)
+                    log.info("device capabilities discovered %s", capabilities)
+                    state = None
+                    if capabilities.get("companion_hid") is not None:
+                        state = protocol.enable_reporting_and_get_state(device)
 
-                if state is None:
-                    protocol.close(device)
-                else:
-                    current_layer, caps_word = state
-                    if callback_keymaps is not None:
-                        vial_meta, layers, layout_options = load_keymaps(
-                            device, capabilities, config_meta
-                        )
-                        callback_keymaps(vial_meta, layers, layout_options)
-
-                    callback_state(current_layer, caps_word)
-
-                    while True:
-                        try:
-                            message = protocol.recv(device)
-                            if message is None:
-                                protocol.close(device)
-                                break
-                            if message[0] == protocol.HID_LAYERS_OUT_STATE:
-                                current_layer, caps_word = message[1], message[2]
-                                callback_state(current_layer, caps_word)
-                            elif message[0] == protocol.HID_LAYERS_OUT_PRESS:
-                                symbol = message[1:5].decode("utf32")
-                                row, col = message[5:7]
-                                action = "release" if message[7] == 0 else "press"
-                                callback_press(symbol, row, col, action)
-
-                        except hid.HIDException as e:
-                            log.error(
-                                "hid receive error %s, %s", device_info["path"], e
+                    if state is None:
+                        protocol.close(device)
+                    else:
+                        current_layer, caps_word = state
+                        if callback_keymaps is not None:
+                            vial_meta, layers, layout_options = load_keymaps(
+                                device, capabilities, config_meta
                             )
-                            break
-        else:
-            log.error("No candidate devices found. I'll wait and try later.")
+                            callback_keymaps(vial_meta, layers, layout_options)
 
-        time.sleep(1)
+                        callback_state(current_layer, caps_word)
+
+                        while True:
+                            try:
+                                message = protocol.recv(device)
+                                if message is None:
+                                    protocol.close(device)
+                                    break
+                                if message[0] == protocol.HID_LAYERS_OUT_STATE:
+                                    current_layer, caps_word = message[1], message[2]
+                                    callback_state(current_layer, caps_word)
+                                elif message[0] == protocol.HID_LAYERS_OUT_PRESS:
+                                    symbol = message[1:5].decode("utf32")
+                                    row, col = message[5:7]
+                                    action = "release" if message[7] == 0 else "press"
+                                    callback_press(symbol, row, col, action)
+
+                            except hid.HIDException as e:
+                                log.error(
+                                    "hid receive error %s, %s", device_info["path"], e
+                                )
+                                break
+            else:
+                log.error("No candidate devices found. I'll wait and try later.")
+
+            time.sleep(1)
+    except Exception:
+        traceback.print_exc()
 
 
 APPLICATION_NAME = "QmkLayoutWidget"
