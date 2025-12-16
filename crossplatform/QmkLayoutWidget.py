@@ -3,7 +3,6 @@
 
 import traceback
 import time
-import hid
 import json
 from pathlib import Path
 import os.path
@@ -112,7 +111,8 @@ def process_loop(
                                     action = "release" if message[7] == 0 else "press"
                                     callback_press(symbol, row, col, action)
 
-                            except hid.HIDException as e:
+                            except Exception as e:
+                                traceback.print_exc()
                                 log.error(
                                     "hid receive error %s, %s", device_info["path"], e
                                 )

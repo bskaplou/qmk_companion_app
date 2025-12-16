@@ -44,10 +44,12 @@ VIA_LAYOUT_OPTIONS = 0x02
 
 def open(product_id, vendor_id, path):
     try:
-        device = hid.Device(vid=vendor_id, pid=product_id, path=path)
+        device = hid.device()
+        # device.open(vendor_id, product_id)
+        device.open_path(path)
         log.info("successfully opened device %s, %s, %s", product_id, vendor_id, path)
         return device
-    except hid.HIDException as e:
+    except Exception as e:
         log.error(
             "failed to open device %s, %s, %s exception: %s",
             product_id,
@@ -95,14 +97,18 @@ def send(device, data, raw=False):
 
 
 def recv(device, timeout=None, raw=False):
-    response = device.read(MESSAGE_LENGTH, timeout=timeout)
+    if timeout is None:
+        response = device.read(MESSAGE_LENGTH)
+    else:
+        response = device.read(MESSAGE_LENGTH, timeout_ms=timeout)
+
     if len(response) == 0:
         log.info("read timeout")
         return None
     elif raw or (
         response[0] >= HID_LAYERS_OUT_STATE and response[0] <= HID_LAYERS_OUT_ERROR
     ):
-        return response
+        return bytes(response)
     else:
         log.error("non-protocol HID message received %s", response)
         return None
@@ -179,7 +185,7 @@ def load_vial_meta(device):
         log.error("failed to load vial meta size with timeout")
         return None
     size = struct.unpack("<I", response[0:4])[0]
-    log.info("vial_meta size of device %s is %s", device.product, size)
+    log.info("vial_meta size of device %s is %s", device.get_product_string(), size)
     remaining_size = size
     layout = b""
     block = 0
