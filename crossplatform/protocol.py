@@ -174,26 +174,42 @@ def disable_reporting(device):
 
 
 def load_vial_meta(device):
-    response = send_recv(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_SIZE], raw=True)
-    if response is None:
-        log.error("failed to load vial meta size with timeout")
-        return None
-    size = struct.unpack("<I", response[0:4])[0]
+    while True:
+        response = send_recv(device, [CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_SIZE], raw=True)
+        if response is None:
+            log.error("failed to load vial meta size with timeout")
+            return None
+        size = struct.unpack("<I", response[0:4])[0]
+        if size < 10000:
+            break
+        else:
+            log.error("strange vial_meta size retreived %s, retrying", size)
+
     log.info("vial_meta size of device %s is %s", device.product, size)
     remaining_size = size
     layout = b""
     block = 0
     while remaining_size > 0:
-        data = send_recv(
-            device,
-            struct.pack("<BBI", CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_DEFINITION, block),
-            raw=True,
-        )
+        query = struct.pack("<BBI", CMD_VIA_VIAL_PREFIX, CMD_VIAL_GET_DEFINITION, block)
+        while True:
+            data = send_recv(
+                device,
+                query,
+                raw=True,
+            )
+            if query != data[1 : len(query) + 1]:
+                break
+            else:
+                log.error(
+                    "vial_meta get definition returned request instead of response for block %s, retrying...",
+                    block,
+                )
         if data is None:
             log.info("failed to load block %s of vial definition", block)
             return None
         if remaining_size < MESSAGE_LENGTH:
             data = data[:remaining_size]
+
         layout += data
         block += 1
         remaining_size -= MESSAGE_LENGTH

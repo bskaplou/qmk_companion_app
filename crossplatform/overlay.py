@@ -9,14 +9,14 @@ def keymap_to_positions(keymap, move_buttons_positions, layout_options):
     layout_options = list(map(lambda o: f"{o[0]},{o[1]}", layout_options))
     buttons = {}
     x_margin = 0.25
-    x_pos = 0
-    y_pos = 0
-    x_mod = 0
-    y_mod = 0
-    max_x, max_y, min_x, min_y = 0, 0, 1000, 1000
+    x_pos = 0.0
+    y_pos = 0.0
+    x_mod = 0.0
+    y_mod = 0.0
+    max_x, max_y, min_x, min_y = 0.0, 0.0, 1000.0, 1000.0
     for row, line in enumerate(keymap):
-        height = 1
-        width = 1
+        height = 1.0
+        width = 1.0
         for col, data in enumerate(line):
             if isinstance(data, dict):
                 if "x" in data:
@@ -38,8 +38,8 @@ def keymap_to_positions(keymap, move_buttons_positions, layout_options):
                     encoder = marks[9].startswith("e")
 
                 wiring = marks[0]
-                x = x_pos + x_mod + width / 2
-                y = y_pos + y_mod + height / 2
+                x = x_pos + x_mod + width / 2.0
+                y = y_pos + y_mod + height / 2.0
                 if (
                     move_buttons_positions is not None
                     and not encoder
@@ -58,13 +58,13 @@ def keymap_to_positions(keymap, move_buttons_positions, layout_options):
 
                 x_pos = x_pos + x_mod + width
 
-                width = 1
-                height = 1
+                width = 1.0
+                height = 1.0
 
-                x_mod = 0
+                x_mod = 0.0
 
-        x_pos = 0
-        y_pos = y_pos + 1
+        x_pos = 0.0
+        y_pos = y_pos + 1.0
 
     aligned_buttons = {}
     for pos, button in buttons.items():
@@ -74,7 +74,7 @@ def keymap_to_positions(keymap, move_buttons_positions, layout_options):
             button[2],
         )
 
-    return aligned_buttons, max_x - min_x + 0.5 + x_margin * 2, max_y - min_y + 0.5
+    return aligned_buttons, max_x - min_x + 0.5 + x_margin * 2.0, max_y - min_y + 0.5
 
 
 class Window(QWidget):
@@ -82,7 +82,7 @@ class Window(QWidget):
     def __init__(self, app):
         super().__init__()
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.setWindowOpacity(0.5)
+        # self.setWindowOpacity(0.5)
         self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint, True)
         self.setWindowFlag(QtCore.Qt.NoDropShadowWindowHint, True)
@@ -190,3 +190,12 @@ class Window(QWidget):
 
     def mouseDoubleClickEvent(self, event):
         self.hide()
+
+    def hide(self):
+        # on macosx os is applying fade-out animation on tooltip disappearance next line neglects such behavior
+        self.setWindowOpacity(0.0)
+        super().hide()
+
+    def show(self):
+        self.setWindowOpacity(0.5)
+        super().show()

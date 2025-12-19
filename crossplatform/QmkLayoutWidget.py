@@ -111,6 +111,8 @@ def process_loop(
                                     row, col = message[5:7]
                                     action = "release" if message[7] == 0 else "press"
                                     callback_press(symbol, row, col, action)
+                                else:
+                                    print("unexpected hid message", message)
 
                             except hid.HIDException as e:
                                 log.error(
